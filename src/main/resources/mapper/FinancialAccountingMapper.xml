@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.efss.mapper.FinancialAccountingMapper" >
+
+
+
+
+
+
+  <insert id="insertFinancialAccountingB" parameterType="com.efss.entity.finance.FinancialAccountingB" >
+	   insert into financial_accounting_b (id,data_dictionary_id,create_date,name,
+	        money, number,remark,year_mos_day,type,userid,delete_flag)
+	    values (#{id},#{dataDictionaryId},#{CreateDate},#{name},#{money},#{number},#{remark},#{yearMosDay},#{type},#{userid},'0')
+  </insert>
+
+
+  
+   <select id="selectFinancialAccounting" parameterType="string" resultType="com.efss.entity.finance.FinancialAccountingB">
+	   SELECT
+	   A.id,A.name,	A.money,A.number,A.money*A.number AS totalMoney,A.delete_flag deleteFlag,
+	   A.remark,A.year_mos_day yearMosDay,su.name userName,d.name dataDictionaryName
+	   FROM financial_accounting_b A
+	   LEFT JOIN (SELECT userid,name FROM sys_user) su ON su.userid=A.userid
+	   LEFT JOIN (SELECT id,name FROM data_dictionary WHERE type='finance') d ON d.id=A.data_dictionary_id
+	   <where>
+		   <if test="type!=null and type!=''">
+			   AND A.type=#{type}
+		   </if>
+		   <if test="dataDictionaryId!=null and dataDictionaryId.length>0">
+			   AND A.data_dictionary_id IN
+			   <foreach collection="dataDictionaryId" item="item" index="index" open="(" close=")" separator=",">
+				   #{item}
+			   </foreach>
+		   </if>
+		  <if test="yearMosDay!=null and yearMosDay!=''">
+			   AND DATE_FORMAT( A.year_mos_day,'%Y-%m') = #{yearMosDay}
+		   </if>
+	   </where>
+	   ORDER BY A.create_date DESC
+  </select>
+
+
+
+
+  <update id="updateDeleteflagByid">
+  		UPDATE financial_accounting_b SET delete_flag='1' WHERE id=#{id}
+  </update>
+  
+  
+  <select id="selectProfit" resultType="com.efss.entity.finance.ProfitList">
+  	SELECT SUM(CASE WHEN zz.bill_name = '租金' THEN zz.money * zz.number ELSE '0' END) AS rent,
+	SUM(CASE WHEN zz.bill_name = '人员费用' THEN zz.money * zz.number ELSE '0' END) AS staffCosts,
+	SUM(CASE WHEN zz.bill_name = '物流费用' THEN zz.money * zz.number ELSE '0' END) AS logisticsFees,
+	SUM(CASE WHEN zz.bill_name = '常态杂物' THEN zz.money * zz.number ELSE '0' END) AS normalcyIncidentals,
+	SUM(CASE WHEN zz.bill_name = '报销费用' THEN zz.money * zz.number ELSE '0' END) AS claimExpense,
+	SUM(CASE WHEN zz.bill_name = '杂费' THEN zz.money * zz.number ELSE '0' END) AS incidentals,
+	SUM(CASE WHEN zz.bill_name = '其他' THEN zz.money * zz.number ELSE '0' END) AS otherExpenses
+	FROM(SELECT	A.bill_name,B.money,B.number FROM	financial_accounting_b B
+		LEFT JOIN financial_accounting A ON B.financial_accounting_id=A.id 
+	WHERE B.year_mos_day LIKE "%"#{yearmos}"%"
+	<if test="sysAreaid !=null and sysAreaid!=''">
+		AND B.sys_area_id=#{sysAreaid}
+	</if>
+	) AS zz
+  </select>
+  
+  
+  
+</mapper>

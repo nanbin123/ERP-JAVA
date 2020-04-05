@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.efss.mapper.UserMapper" >
+
+	 <select id="hellowSelectUser" resultType="com.efss.entity.user.User">
+			SELECT a.name username FROM sys_user a
+	 </select>
+
+
+	<select id="getUserByUsername" resultType="com.efss.entity.user.User">
+		SELECT su.userid id,su.sessionid,su.officeid,su.name username,su.phone,su.password,su.data_scope dataScope,
+		substring_index(sa.parent_ids, ',', 2) provincesid,
+		substring_index(sa.parent_ids, ',', 3) departmentid,
+		substring_index(sa.parent_ids, ',', 4) regionid,
+		substring_index(sa.parent_ids, ',', 5) storefrontid,
+		sa.id posioionid
+		FROM sys_user su
+		LEFT JOIN sys_area sa ON su.area_id=sa.id
+		WHERE su.phone =#{phone}
+	</select>
+ 	
+ 	
+ 	
+ 	
+
+ 
+</mapper>

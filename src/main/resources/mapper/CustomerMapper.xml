@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.efss.mapper.CustomerMapper" >
+	
+	<select id="selectCustOmer" resultType="com.efss.entity.customer.Customer">
+		SELECT	A.id,A.customer_name customerName,remark,
+		A.phone customerPhone,A.address customerAddress,
+		su.name userName
+		FROM
+		customer A
+		LEFT JOIN sys_user su ON A.userid=su.userid
+		LEFT JOIN sys_area sa ON su.area_id=sa.id
+		<where>
+		 	<if test="customerName !=null and customerName !=''">
+		 		AND A.customer_name LIKE "%"#{customerName}"%"
+		 	</if>
+		 	<if test="phone !=null and phone !=''">
+		 		AND A.phone LIKE "%"#{phone}"%"
+		 	</if>
+		 	<if test="address !=null and address!=''">
+		 		AND A.address LIKE "%"#{address}"%"
+		 	</if>
+		 	<if test="grade !=null and grade!='' and grade!='0'">
+		 		AND A.grade=#{grade}
+		 	</if>
+		</where>
+	</select>
+
+	<select id="selectCustomerArrival" resultType="com.efss.entity.customer.CustomerArrival">
+		SELECT	id,arrival_time arrivalTime,
+			arrival_length arrivalLength,
+			arrival_record arrivalRecord
+		FROM
+			customer_arrival
+		WHERE customer_id=#{id}
+		 AND arrival_type=#{arrivalType}
+	</select>
+
+
+	<insert id="insertCustomerArrival">
+		INSERT INTO customer_arrival (id,customer_id,arrival_time,arrival_length,arrival_record)
+		 VALUES (#{id}, #{customerId}, #{arrivalTime}, #{arrivalLength}, #{arrivalRecord})
+	</insert>
+
+	<!--<select id="selectCustomerByid" resultType="cn.rh.entity.customer.Customer">
+		SELECT A.id,A.customer_name customerName,A.phone customerPhone,A.address customerAddress,
+				A.sex,A.predict_time predictTime,A.reminder_time reminderTime,A.grade,remark,
+				B.place_order_time placeOrderTime,B.order_number orderNumber,B.discount
+		  FROM customer A 
+		LEFT JOIN orders B ON A.id=B.customer_id
+		WHERE A.id=#{id}
+	</select>
+	
+	<update id="updateCustomerByid">
+		UPDATE customer
+		<set>
+			<if test="customerName !=null and customerName !=''">
+				customer_name = #{customerName},
+			</if>
+			<if test="customerPhone !=null and customerPhone !=''">
+				phone = #{customerPhone},
+			</if>
+			<if test="customerAddress !=null and customerAddress !=''">
+				address = #{customerAddress},
+			</if>
+			<if test="sex !=null and sex !=''">
+				 sex = #{sex},
+			</if>
+			<if test="remark !=null and remark !=''">
+				remark=#{remark},
+			</if>
+			<if test="predictTime !=null and predictTime !=''">
+				predict_time=#{predictTime},
+			</if>
+			<if test="reminderTime !=null and reminderTime !=''">
+				reminder_time=#{reminderTime},
+			</if>
+			<if test="grade !=null and grade !=''">
+				 grade=#{grade},
+			</if>
+		</set>
+		WHERE id=#{id}
+	</update>
+	
+	
+	<insert id="insertCustomerProduct">
+		INSERT INTO customer_product (id,customer_id,productid,number)
+		VALUES(#{id},#{customerId},#{productid},#{number})
+	</insert>
+	<select id="selectCustomerProduct" resultType="cn.rh.entity.customer.CustomerProduct">
+		SELECT A.id,A.number,B.product_name productName,
+			   B.type,B.size,B.color,texture,B.price,
+			   B.production,C.category productType
+		FROM customer_product A
+		LEFT JOIN product_record B ON A.productid=B.id 
+	    LEFT JOIN product_category_b C ON B.product_category_b_id=C.id
+		WHERE A.customer_id=#{id}
+		<if test="isOrderProduct == 'yes'">
+			AND A.number>0
+		</if>
+		
+	</select>
+	
+	<update id="updateCustomerProductById">
+		UPDATE customer_product SET number=#{number} WHERE id=#{id}
+	</update>
+	
+	<delete id="deleteCustomerProductById">
+		DELETE FROM customer_product WHERE id=#{id}
+	</delete>
+	
+
+	
+	<select id="selectCustomerTailafter" resultType="cn.rh.entity.customer.CustomerTailafter">
+		SELECT	id,tailafter_length tailafterLength,
+			tailafter_time tailafterTime,
+			tailafter_record tailafterRecord
+		FROM
+			customer_tailafter
+		WHERE customer_id=#{id}
+	</select>
+	
+	
+	<insert id="insertCustomerTailafter">
+		INSERT INTO customer_tailafter (
+			id,
+			customer_id,
+			tailafter_time,
+			tailafter_length,
+			tailafter_record
+		)
+		VALUES
+			(#{id},#{customerId},
+			#{tailafterTime},#{tailafterLength},
+			#{tailafterRecord})	
+	</insert>
+	
+	<update id="updateCustomerTailafter">
+		UPDATE customer_tailafter 
+		 <set>
+		 	<if test="tailafterTime !=null and tailafterTime!=''">
+		 		tailafter_time=#{tailafterTime},
+		 	</if>
+		 	<if test="tailafterLength !=null and tailafterLength!=''">
+		 		tailafter_length=#{tailafterLength},
+		 	</if>
+		 	<if test="tailafterRecord != null and tailafterRecord!=''">
+		 		tailafter_record=#{tailafterRecord},
+		 	</if>
+		 </set>
+		WHERE id=#{id}
+	</update>
+	
+
+	
+	<update id="updateCustomerArrival">
+		UPDATE customer_arrival 
+		 <set>
+			<if test="arrivalTime != null and arrivalTime !=''">
+				arrival_time=#{arrivalTime},	
+			</if>
+			<if test="arrivalLength != null and arrivalLength !=''">
+				arrival_length=#{arrivalLength},
+			</if>
+			<if test="arrivalRecord != null and arrivalRecord !=''">
+				arrival_record=#{arrivalRecord},
+			</if>
+		 </set>
+		WHERE id=#{id}
+	</update>
+	
+	
+	
+	<select id="selectTotalMoney" resultType="cn.rh.entity.customer.Customer">
+		SELECT A.customer_id customerId,SUM(A.number*B.price) totalMoney,
+			C.customer_name customerName FROM customer_product A
+		LEFT JOIN product_record B ON A.productid=B.id 
+		LEFT JOIN customer C ON A.customer_id=C.id
+		WHERE A.number>0 AND A.customer_id=#{id}
+		GROUP BY A.customer_id
+	</select>
+	
+	<select id="selectDiscount" resultType="string">
+		SELECT discount FROM orders_discount WHERE select_user_id ='234cedb324b949438eea2ab2dc900187'
+	</select>
+	
+	<insert id="inserorder">
+	INSERT INTO orders (id,customer_id,userid,delivery_time,
+		order_number,discount,actualmoney,place_order_time,approve_state,approve_current_no,approve_id)
+		VALUES(#{id},#{customerId},#{userid},#{deliveryTime},#{orderNumber},
+		#{discount},#{actualmoney},#{placeOrderTime},#{approveState},#{approveCurrentNo},#{approveId})
+	</insert>
+	
+	
+	
+	
+	
+	&lt;!&ndash; SELECT D.id,A.customer_id customerId,SUM(A.number*B.price) totalMoney,
+			   C.customer_name customerName,D.discount,SUM(A.number*B.price)*D.discount/10 discountTotalMoney,
+			   D.actualmoney,D.delivery_time deliveryTime,IFNULL(received.amountReceived,'0') amountReceived,
+		       IFNULL(salesreturn.salesreturnMoney,'0') salesreturnMoney
+			FROM customer_product A
+				LEFT JOIN product_record B ON A.productid=B.id 
+				LEFT JOIN customer C ON A.customer_id=C.id
+				LEFT JOIN orders D ON D.customer_id=C.id
+		    LEFT JOIN (SELECT IFNULL(SUM(re.amount_received),'0') amountReceived,re.orders_id orderid FROM received re
+					LEFT JOIN (SELECT	relationid,	COUNT(id) number FROM	approve_check WHERE	state = '2'GROUP BY	relationid) AS approve ON re.id=approve.relationid
+					WHERE approve.number=(LENGTH(re.approve_id)-LENGTH(replace(re.approve_id,',',''))+1) GROUP BY re.orders_id) AS received ON received.orderid=D.id
+		   LEFT JOIN (SELECT	IFNULL(SUM(sa.salesreturn_money),'0') salesreturnMoney,	sa.orderid
+					FROM	salesreturn sa LEFT JOIN (	SELECT		relationid,		COUNT(id) number	FROM		approve_check
+					WHERE		state = '2'	GROUP BY		relationid) AS approve ON sa.id = approve.relationid WHERE
+					approve.number  =(LENGTH(sa.approve_id)-LENGTH(replace(sa.approve_id,',',''))+1) GROUP BY	sa.orderid) AS salesreturn ON salesreturn.orderid=D.id
+			WHERE A.number>0 AND A.customer_id=#{id}
+			GROUP BY A.customer_id &ndash;&gt;
+	
+	<select id="selectOrder" resultType="cn.rh.entity.customer.Customer">
+	SELECT 			 
+		 D.id,
+         CPP.customer_id customerId,    
+		 C.customer_name customerName,
+		 CPP.totalMoney,
+		 D.actualmoney/totalMoney AS discount,	 
+		 CPP.totalMoney*(D.actualmoney/totalMoney) discountTotalMoney,
+		 D.actualmoney,
+      	 D.delivery_time deliveryTime,
+      	 su.name userName,
+		 IFNULL(received.amountReceived,'0') amountReceived,
+		 IFNULL(salesreturn.salesreturnMoney,'0') salesreturnMoney			
+	FROM (SELECT CP.customer_id,SUM(CP.number*P.price) totalMoney
+		FROM customer_product  CP
+		LEFT JOIN (SELECT id,price FROM product_record) P ON CP.productid=P.id
+		WHERE CP.number>0 AND CP.customer_id=#{id} GROUP BY CP.customer_id) CPP
+	  	LEFT JOIN customer C ON CPP.customer_id=C.id
+	  	LEFT JOIN orders D ON D.customer_id=C.id
+	  	LEFT JOIN (SELECT userid,name FROM sys_user ) AS su ON su.userid=D.userid
+        &lt;!&ndash; 已收款 &ndash;&gt;
+	  	LEFT JOIN (SELECT IFNULL(SUM(re.amount_received),'0') amountReceived,re.orders_id orderid
+			FROM received re
+				LEFT JOIN (SELECT	relationid,	COUNT(id) number FROM	approve_check WHERE	state = '2'GROUP BY	relationid) AS approve ON re.id=approve.relationid
+			WHERE approve.number=(LENGTH(re.approve_id)-LENGTH(replace(re.approve_id,',',''))+1) GROUP BY re.orders_id)  AS received ON received.orderid=D.id
+	    &lt;!&ndash; 退款金额 &ndash;&gt;
+		LEFT JOIN (SELECT	IFNULL(SUM(sa.salesreturn_money),'0') salesreturnMoney,	sa.orderid
+			FROM	salesreturn sa LEFT JOIN (	SELECT		relationid,		COUNT(id) number	FROM		approve_check
+			WHERE		state = '2'	GROUP BY		relationid) AS approve ON sa.id = approve.relationid WHERE
+			approve.number  =(LENGTH(sa.approve_id)-LENGTH(replace(sa.approve_id,',',''))+1) GROUP BY	sa.orderid) AS salesreturn ON salesreturn.orderid=D.id
+	</select>
+	
+	<select id="selectRelation" resultType="cn.rh.entity.order.Relation">
+		SELECT id,'收款单' AS name FROM received WHERE orders_id=#{id}
+			UNION
+		SELECT id,'退货单' AS name FROM salesreturn WHERE orderid=#{id}
+	</select>
+	
+	
+	<select id="selectApproveOrder" resultType="cn.rh.entity.customer.Customer">
+		SELECT IFNULL(FIND_IN_SET(#{userid},approve.userid),'0') isAllowApprove,
+			C.phone customerPhone,C.address customerAddress,
+			D.id,A.customer_id customerId,SUM(A.number*B.price) totalMoney,D.place_order_time createDate,
+			C.customer_name customerName,D.discount,SUM(A.number*B.price)*D.discount/10 discountTotalMoney,
+			D.actualmoney,D.actualmoney unAmountReceived,D.delivery_time deliveryTime
+			FROM customer_product A
+		    LEFT JOIN product_record B ON A.productid=B.id 
+		    LEFT JOIN customer C ON A.customer_id=C.id
+	    LEFT JOIN orders D ON D.customer_id=C.id
+		  LEFT JOIN (SELECT relationid,GROUP_CONCAT(userid ORDER BY check_date ASC) userid FROM approve_check GROUP BY relationid) AS approve ON D.id=approve.relationid
+		  WHERE A.number>0 AND A.customer_id=#{id}
+		  GROUP BY A.customer_id
+	</select>
+	
+	
+	
+	<select id="selectApprove" resultType="cn.rh.entity.verifier.Approve">
+		SELECT	u.name,	IFNULL(ac.state,1) state,
+			  ac.check_date checkDate, ac.reason
+		FROM
+			orders o
+		LEFT JOIN (SELECT id FROM customer) c ON o.customer_id=c.id
+		LEFT JOIN sys_user u ON FIND_IN_SET(u.userid, o.approve_id)
+		LEFT JOIN approve_check ac ON o.id=ac.relationid AND u.userid=ac.userid
+		WHERE
+			c.id = #{id}		
+		ORDER BY FIND_IN_SET(u.userid, o.approve_id)
+	</select>
+	
+	
+	<insert id="insertCustomer">
+		INSERT INTO customer (id,userid,customer_name,sex,phone,address,grade,remark,create_date)
+			VALUES	(#{id},#{userid},#{customerName},#{sex},#{customerPhone},#{customerAddress},#{grade},#{remark},#{createDate})
+	</insert>
+	
+	
+	&lt;!&ndash; SELECT A.id,B.id customerId,A.order_number orderNumber,C.totalMoney,A.discount,
+			(C.totalMoney*A.discount) discountTotalMoney ,A.actualmoney,
+			B.customer_name customerName,B.phone customerPhone,B.address customerAddress,
+			IFNULL(received.amountReceived,'0') amountReceived,
+			IF(approveReceived.reid>0,'no','yes') isImport
+		FROM orders A
+		LEFT JOIN customer B ON A.customer_id=B.id
+			LEFT JOIN (SELECT CP.customer_id,SUM(CP.number*PR.price) totalMoney
+			FROM customer_product CP
+			LEFT JOIN product_record PR ON CP.productid=PR.id 
+			WHERE number>0 GROUP BY CP.customer_id) C ON B.id=C.customer_id
+			 计算已收款
+		LEFT JOIN (
+			SELECT IFNULL(SUM(re.amount_received),'0') amountReceived,re.orders_id orderid FROM received re
+			LEFT JOIN (SELECT	relationid,	COUNT(id) number FROM	approve_check WHERE	state = '2'GROUP BY	relationid) AS approve ON re.id=approve.relationid
+			WHERE approve.number>=(LENGTH(re.approve_id)-LENGTH(replace(re.approve_id,',',''))+1) GROUP BY re.orders_id) AS received  ON A.id=received.orderid
+   			 如果收款单有正在审批的单据
+			LEFT JOIN (SELECT count(re.id) reid,re.orders_id FROM received re
+				LEFT JOIN (SELECT	relationid,	COUNT(id) number FROM	approve_check WHERE state='2' GROUP BY	relationid) AS approve ON re.id=approve.relationid
+				WHERE IFNULL(approve.number,0) &lt;&gt; LENGTH(re.approve_id)-LENGTH(replace(re.approve_id,',',''))+1 
+				GROUP BY re.orders_id) AS approveReceived ON approveReceived.orders_id=A.id   		
+   		只有订单审核通过的 才查询出来
+   		LEFT JOIN (SELECT	relationid,	COUNT(id) number FROM	approve_check WHERE	state = '2'GROUP BY	relationid) AS orderapprove ON orderapprove.relationid=A.id
+		WHERE orderapprove.number=(LENGTH(A.approve_id)-LENGTH(replace(A.approve_id,',',''))+1) &ndash;&gt;
+	
+	<select id="selectReceivablesOrder" resultType="cn.rh.entity.customer.Customer">
+		SELECT 			 
+			 D.id,
+			 D.order_number orderNumber,
+		 	 C.phone customerPhone,
+	     	 CPP.customer_id customerId,    
+			 C.customer_name customerName,
+			 CPP.totalMoney,
+			 D.actualmoney/totalMoney AS discount,	 
+			 CPP.totalMoney*(D.actualmoney/totalMoney) discountTotalMoney,
+			 D.actualmoney,
+	     	 D.delivery_time deliveryTime,
+			 IFNULL(received.amountReceived,'0') amountReceived,		 
+			 IF(approveReceived.reid>0,'no','yes') isImport	
+		FROM (SELECT CP.customer_id,SUM(CP.number*P.price) totalMoney
+			FROM customer_product  CP
+			LEFT JOIN (SELECT id,price FROM product_record) P ON CP.productid=P.id
+			WHERE CP.number>0 GROUP BY CP.customer_id) CPP
+		  	LEFT JOIN customer C ON CPP.customer_id=C.id
+		  	LEFT JOIN orders D ON D.customer_id=C.id
+				&lt;!&ndash; 只有审批通过的订单 &ndash;&gt;
+				LEFT JOIN (SELECT	relationid,	COUNT(id) number FROM	approve_check WHERE	state = '2' GROUP BY	relationid) AS orderapprove ON orderapprove.relationid=D.id 	
+				&lt;!&ndash;  如果收款单有正在审批的单据 &ndash;&gt;
+				LEFT JOIN (SELECT count(re.id) reid,re.orders_id FROM received re
+				LEFT JOIN (SELECT	relationid,	COUNT(id) number FROM	approve_check WHERE state='2' GROUP BY	relationid) AS approve ON re.id=approve.relationid
+				WHERE IFNULL(approve.number,0) &lt;&gt; LENGTH(re.approve_id)-LENGTH(replace(re.approve_id,',',''))+1 
+				GROUP BY re.orders_id) AS approveReceived ON approveReceived.orders_id=D.id
+	      		&lt;!&ndash; 已收款 &ndash;&gt;
+		  	LEFT JOIN (SELECT IFNULL(SUM(re.amount_received),'0') amountReceived,re.orders_id orderid
+				FROM received re
+				LEFT JOIN (SELECT	relationid,	COUNT(id) number FROM	approve_check WHERE	state = '2'GROUP BY	relationid) AS approve ON re.id=approve.relationid
+				WHERE approve.number=(LENGTH(re.approve_id)-LENGTH(replace(re.approve_id,',',''))+1) GROUP BY re.orders_id)  AS received ON received.orderid=D.id
+			WHERE orderapprove.number=(LENGTH(D.approve_id)-LENGTH(replace(D.approve_id,',',''))+1)
+		
+		<if test="custnameOrPhone !=null and custnameOrPhone !=''">		 
+		    AND C.customer_name LIKE "%"#{custnameOrPhone}"%" OR B.phone LIKE "%"#{custnameOrPhone}"%"
+		</if>
+		<if test="id !=null and id !=''">
+			AND D.id=#{id}
+		</if>
+	</select>
+	
+	<select id="getReceivable" resultType="string">
+		SELECT IFNULL(SUM(re.amount_received),'0') amountReceived FROM received re
+			LEFT JOIN (SELECT	relationid,	COUNT(id) number FROM	approve_check WHERE	state = '2' GROUP BY	relationid) AS approve ON re.id=approve.relationid
+			WHERE approve.number=(LENGTH(re.approve_id)-LENGTH(replace(re.approve_id,',',''))+1) 
+			AND re.orders_id=#{ordersId}
+		GROUP BY re.orders_id
+	</select>
+	
+	<insert id="insertReceoved">
+		INSERT INTO received (
+			id,	orders_id,receivable,amount_received,
+			remark,	voucher,	gathering_way,
+			serial_number,	userid,	create_date,
+			approve_state,	approve_current_no,	approve_id)
+		VALUES
+			(#{id},#{ordersId},#{receivable},#{amountReceived},
+			#{remark},#{voucher},#{gatheringWay},
+			#{serialNumber},#{userid},#{createDate},
+			#{approveState},#{approveCurrentNo},#{approveId})
+	</insert>
+	
+	<select id="selectReceovedById" resultType="cn.rh.entity.order.Received">
+		SELECT	
+			IFNULL(FIND_IN_SET(#{userid},approve.userid),'0') isAllowApprove,
+			r.id,	r.serial_number serialNumber,
+			r.amount_received amountReceived,
+			r.remark,	r.voucher,r.gathering_way gatheringWay,r.create_date createDate,
+			IFNULL(r.receivable,'0')receivable,
+			orders.actualmoney,orders.discountTotalMoney,
+			orders.discount,orders.totalMoney,
+		    orders.customer_name customerName,
+			orders.phone customerPhone
+		FROM	received r
+		LEFT JOIN (
+			SELECT O.id,sumprice.totalMoney,
+				   O.actualmoney/sumprice.totalMoney discount, 
+				   sumprice.totalMoney*(O.actualmoney/sumprice.totalMoney) discountTotalMoney,
+				   O.actualmoney, C.customer_name,C.phone
+			FROM orders O 
+			LEFT JOIN customer C ON O.customer_id=C.id
+			LEFT JOIN (SELECT customer_id,SUM(p.price*cp.number) totalMoney FROM customer_product cp
+			LEFT JOIN product_record p ON cp.productid=p.id
+			WHERE number >0 GROUP BY cp.customer_id) sumprice ON C.id=sumprice.customer_id
+			) AS orders ON r.orders_id=orders.id
+		LEFT JOIN (SELECT relationid,GROUP_CONCAT(userid ORDER BY check_date ASC) userid
+		FROM approve_check GROUP BY relationid) AS approve ON r.id=approve.relationid
+		WHERE r.id=#{id}
+	</select>
+	
+	
+	
+	<select id="selectReceovedApprove"  resultType="cn.rh.entity.verifier.Approve">
+		SELECT u.name,IFNULL(ac.state,1) state,
+			ac.check_date checkDate, ac.reason 
+			FROM received  re
+			LEFT JOIN sys_user u ON FIND_IN_SET(u.userid, re.approve_id)
+			LEFT JOIN approve_check ac ON re.id=ac.relationid AND u.userid=ac.userid
+		WHERE re.id=#{id}
+		ORDER BY FIND_IN_SET(u.userid, re.approve_id)
+	</select>
+	
+	
+	
+	
+	<insert id="insertSalesreturn" parameterType="cn.rh.entity.order.Salesreturn" >
+	    	insert into salesreturn
+		    <trim prefix="(" suffix=")" suffixOverrides="," >
+		      <if test="id != null" >
+		        id,
+		      </if>
+		      <if test="orderid != null" >
+		        orderid,
+		      </if>
+		      <if test="userid != null" >
+		        userid,
+		      </if>
+		      <if test="salesreturnNumber != null">
+		      	salesreturn_number,
+		      </if>
+		      <if test="type != null" >
+		        type,
+		      </if>
+		      <if test="actualmoney != null" >
+		        actualmoney,
+		      </if>
+		       <if test="salesreturnMoney != null" >
+		        salesreturn_money,
+		      </if>
+		      <if test="paymentWay != null" >
+		        payment_way,
+		      </if>
+		      <if test="remark != null" >
+		        remark,
+		      </if>     
+		       <if test="createDate != null" >
+		        create_date,
+		      </if>
+		       <if test="approveId != null" >
+		        approve_id,
+		      </if>
+		    </trim>
+		    <trim prefix="values (" suffix=")" suffixOverrides="," >
+		      <if test="id != null" >
+		        #{id},
+		      </if>
+		      <if test="orderid != null" >
+		        #{orderid},
+		      </if>
+		      <if test="userid != null" >
+		        #{userid},
+		      </if>
+		      <if test="salesreturnNumber != null">
+		      	#{salesreturnNumber},
+		      </if>
+		      <if test="type != null" >        
+		         #{type},
+		      </if>
+		      <if test="actualmoney != null" >
+		       	#{actualmoney},       
+		      </if>
+		       <if test="salesreturnMoney != null" >        
+		        #{salesreturnMoney}, 
+		      </if>
+		       <if test="paymentWay != null" >
+		        #{paymentWay},
+		      </if>
+		      <if test="remark != null" >
+		        #{remark},
+		      </if>     
+		       <if test="createDate != null" >
+		        #{createDate},
+		      </if>
+		      <if test="approveId != null" >
+		        #{approveId},
+		      </if>     
+		    </trim>
+  </insert>
+  
+  
+  
+   <insert id="insertSalesreturnProduct" parameterType="cn.rh.entity.order.SalesreturnProduct" >
+    insert into salesreturn_product
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="salesreturnId != null" >
+        salesreturn_id,
+      </if>
+      <if test="orderProductId != null" >
+        order_product_id,
+      </if>
+      <if test="number != null" >
+        number,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id},
+      </if>
+      <if test="salesreturnId != null" >
+        #{salesreturnId},
+      </if>
+      <if test="orderProductId != null" >
+        #{orderProductId},
+      </if>
+      <if test="number != null" >
+        #{number},
+      </if>
+    </trim>
+  </insert>
+	
+	<select id="selectSalesreturn" resultType="cn.rh.entity.order.Salesreturn">
+		SELECT	sreturn.id,
+			sreturn.create_date createDate,
+			cust.customer_name customerName,
+			cust.phone customerPhone,
+			cust.address customerAddress,
+			O.place_order_time placeOrderTime,
+			O.order_number orderNumber
+		 FROM  salesreturn sreturn 
+			LEFT JOIN orders O ON sreturn.orderid=O.id
+      LEFT JOIN customer cust ON O.customer_id=cust.id
+      where 1=1
+       <if test="custnameOrPhone !=null and custnameOrPhone !=''">
+		 	 and cust.customer_name LIKE "%"#{custnameOrPhone}"%"
+		 	  OR O.order_number LIKE "%"#{custnameOrPhone}"%"
+		</if>
+	</select>
+	
+	<select id="selectSalesreturnById" resultType="cn.rh.entity.order.Salesreturn">
+		SELECT
+			IFNULL(FIND_IN_SET(#{userid},approve.userid),'0') isAllowApprove,
+		    sales.id,	sales.type,	sales.actualmoney, 
+			sales.salesreturn_money salesreturnMoneyPay,
+			sales.payment_way paymentWay,	sales.remark,
+			sales.create_date createDate,sales.create_date createDate,
+			cust.customer_name customerName,
+			cust.phone customerPhone,
+			cust.address customerAddress,
+			cust.sex,	cust.grade,
+			O.place_order_time placeOrderTime,
+			O.order_number orderNumber,
+      		O.discount,
+			CP.totalMoney,
+      (CP.totalMoney*O.discount)  discountTotalMoney,
+			IFNULL(received.amountReceived,'0') amountReceived,
+			IFNULL(salesreturn.salesreturnMoney,'0') salesreturnMoney
+		FROM salesreturn sales 
+		LEFT JOIN orders O ON sales.orderid = O.id
+		LEFT JOIN customer cust ON O.customer_id=cust.id		
+		LEFT JOIN (SELECT customer_id,SUM(CP.number*P.price) totalMoney FROM customer_product CP
+			LEFT JOIN (SELECT id,price FROM product_record) P ON CP.productid=P.id
+			WHERE CP.number>0 GROUP BY CP.customer_id) AS CP ON cust.id=CP.customer_id
+		LEFT JOIN (SELECT IFNULL(SUM(re.amount_received),'0') amountReceived,re.orders_id orderid FROM received re
+			LEFT JOIN (SELECT	relationid,	COUNT(id) number FROM	approve_check WHERE	state = '2'GROUP BY	relationid) AS approve ON re.id=approve.relationid
+			WHERE approve.number>0 GROUP BY re.orders_id)  AS received ON received.orderid=O.id
+		LEFT JOIN (SELECT	IFNULL(SUM(sa.salesreturn_money),'0') salesreturnMoney,	sa.orderid
+			FROM	salesreturn sa LEFT JOIN (	SELECT		relationid,		COUNT(id) number	FROM		approve_check
+			WHERE		state = '2'	GROUP BY		relationid) AS approve ON sa.id = approve.relationid WHERE
+			approve.number > 0 GROUP BY	sa.orderid) AS salesreturn ON salesreturn.orderid=O.id
+			LEFT JOIN (SELECT relationid,GROUP_CONCAT(userid ORDER BY check_date ASC) userid 
+			FROM approve_check GROUP BY relationid) AS approve ON sales.id=approve.relationid
+		WHERE
+			sales.id = #{id}
+	</select>
+	
+	<select id="selectSalesreturnProduct" resultType="cn.rh.entity.order.SalesreturnProduct">
+		SELECT
+			custp.id,
+			salesreturnp.number,
+			prodcut.product_name productName,
+			prodcut.type,
+			prodcut.size,
+			prodcut.color,
+			prodcut.texture,
+			prodcut.price,
+			prodcut.production,
+			productc.category productType
+		FROM salesreturn_product salesreturnp 
+		LEFT JOIN	customer_product custp ON salesreturnp.order_product_id=custp.id
+		LEFT JOIN product_record prodcut ON custp.productid = prodcut.id
+		LEFT JOIN product_category_b productc ON prodcut.product_category_b_id = productc.id
+		WHERE
+			salesreturnp.salesreturn_id = #{id}
+		AND custp.number > 0
+	</select>
+	
+	
+	<select id="selectReturnApprove" resultType="cn.rh.entity.verifier.Approve">
+		SELECT u.name,IFNULL(ac.state,1) state,
+		ac.check_date checkDate, ac.reason,u.userid
+		FROM salesreturn  sales
+		LEFT JOIN sys_user u ON FIND_IN_SET(u.userid, sales.approve_id)
+		LEFT JOIN approve_check ac ON sales.id=ac.relationid AND u.userid=ac.userid
+		WHERE sales.id=#{id}
+		ORDER BY FIND_IN_SET(u.userid, sales.approve_id)
+	</select>
+	<select id="selectPaymentApprove" resultType="cn.rh.entity.order.PaymenApprove">
+		SELECT
+			u.userid,u.NAME,IFNULL(ac.state, 1) state,ac.check_date checkDate,ac.reason
+		FROM
+			payment p
+		LEFT JOIN sys_user u ON FIND_IN_SET(u.userid, p.approve_id)
+		LEFT JOIN approve_check ac ON p.id = ac.relationid
+		AND u.userid = ac.userid
+		WHERE
+			p.id = #{id}
+		ORDER BY FIND_IN_SET(u.userid, p.approve_id)
+	</select>
+	
+	
+	<insert id="insertPayment" parameterType="cn.rh.entity.order.Payment" >
+		INSERT INTO payment (
+			id,
+			userid,
+			serial_number,
+			mechanism,
+			information,
+			payment_amount,
+			payment_way,
+			remark,
+			voucher,
+			create_date,
+			approve_id
+		)
+		VALUES
+			(
+				#{id},
+				#{userid},
+				#{serialNumber},
+				#{mechanism},
+				#{information},
+				#{paymentAmount},
+				#{paymentWay},
+				#{remark},
+				#{voucher},
+				#{createDate},
+				#{approveId}
+			)
+	</insert>
+	
+	
+	<select id="selectPaymentById" resultType="cn.rh.entity.order.Payment">
+		SELECT
+			IFNULL(FIND_IN_SET(#{userid},approve.userid),'0') isAllowApprove,
+			id,	serial_number serialNumber,	mechanism,	information,
+			payment_amount paymentAmount,	payment_way paymentWay,	remark,
+			voucher,	create_date createDate,u.`name` username
+		FROM payment P
+		LEFT JOIN (SELECT relationid,GROUP_CONCAT(userid ORDER BY check_date ASC) userid 
+			FROM approve_check GROUP BY relationid) AS approve ON P.id=approve.relationid
+		LEFT JOIN sys_user u ON u.userid=P.userid	
+		WHERE P.id=#{id}
+	</select>
+	<insert id="insertPaymentVoucher" parameterType="cn.rh.entity.order.PaymentVoucher" >
+		INSERT INTO payment_voucher (
+			id,
+			payment_id,
+			userid,
+			voucher
+		)
+		VALUES(
+		#{id},
+		#{paymentId},
+		#{userid},
+		#{voucher}
+		)	
+	</insert>
+	
+	<select id="selectPaymentVoucher" resultType="cn.rh.entity.order.PaymentVoucher">
+		SELECT id,voucher FROM payment_voucher WHERE payment_id=#{paymentId} AND userid=#{userid}
+	</select>
+		<select id="selectReceiveBydz" resultType="cn.rh.entity.order.Received">
+	SELECT  
+	r.id,c.customer_name userid,o.actualmoney amountReceived,r.amount_received receivable,
+	r.create_date createDate,r.gathering_way gatheringWay,r.remark remark,r.voucher voucher
+	FROM received r LEFT JOIN orders o ON o.id=r.orders_id LEFT JOIN customer c ON c.id=o.customer_id
+LEFT JOIN purchase_note pn ON o.id =pn.orderid
+LEFT JOIN purchase p ON p.purchase_node_id=pn.id
+where p.id=#{id}
+	</select>
+	<delete id="deleteReceive">
+	delete from received  where id=#{id}
+	</delete>
+	&lt;!&ndash; 上展申请 &ndash;&gt;
+	 <insert id="insertExhibition">
+	 insert into exhibition (id, userid, department, 
+      proposer, total,  
+      unit, serial_number,
+      bill_date,create_date,approve_state,
+      	approve_current_no,	approve_id)
+    values (#{id}, #{userid}, #{department}, 
+      #{proposer}, #{total},#{unit}, #{serialNumber},
+      #{billDate}, #{createDate},#{approveState},#{approveCurrentNo},#{approveId})
+  </insert>
+    <insert id="insertExhibitionB">
+    insert into exhibition_b (id, exhibition_id, name, 
+      type, size, color, 
+      number, remark)
+    values (#{id,jdbcType=VARCHAR}, #{exhibitionId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
+      #{type,jdbcType=VARCHAR}, #{size,jdbcType=VARCHAR}, #{color,jdbcType=VARCHAR}, 
+      #{number,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR})
+  </insert>
+ &lt;!&ndash;<select id="selectExhibitionId" resultType="cn.rh.entity.order.Exhibition" >
+	  select 
+	      A.id, B.name userid, A.department, A.proposer, A.total,  A.unit,  A.serial_number serialNumber,
+	        A.bill_date billDate, A.create_date createDate
+	  from exhibition A INNER JOIN sys_user B ON A.userid=B.userid
+	  	LEFT JOIN (SELECT relationid,GROUP_CONCAT(userid ORDER BY check_date ASC) userid 
+			FROM approve_check GROUP BY relationid) AS approve ON A.id=approve.relationid
+	      where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <select id="selectExhibitionBId" resultType="cn.rh.entity.order.ExhibitionB">
+      select id, exhibition_id, name,  type, size, color, number, remark from exhibition_b where exhibition_id=#{id}
+  </select> &ndash;&gt;
+ <select id="selectExhibitionApprove" resultType="cn.rh.entity.verifier.Approve">
+		SELECT u.name,IFNULL(ac.state,1) state,
+		ac.check_date checkDate, ac.reason,u.userid
+		FROM exhibition  e
+		LEFT JOIN sys_user u ON FIND_IN_SET(u.userid, e.approve_id)
+		LEFT JOIN approve_check ac ON e.id=ac.relationid AND u.userid=ac.userid
+		WHERE e.id=#{id}
+	</select>
+	
+	
+	<select id="salectArea" resultType="cn.rh.entity.order.SalesKanban">
+		SELECT sa.id,sa.name FROM sys_area sa 
+			LEFT JOIN (SELECT userid,officeid FROM sys_user) su ON sa.userid=su.userid
+			<where>
+				<if test="type !=null and type !=''">
+					sa.type=#{type}
+				</if>
+				<if test="officeid !=null and officeid!=''">
+					AND su.officeid=#{officeid}
+				</if>
+				<if test="id !=null and id!=''">
+					AND sa.id=#{id}
+				</if>
+			</where>		
+	</select>
+	
+	<select id="salectStorefrontAchievement" resultType="cn.rh.entity.order.SalesKanbanB">
+		SELECT 
+			sastorefront.name,
+			<if test="timeFrame == 'year'">
+				SUM(IF(YEAR(CURDATE())=DATE_FORMAT(O.place_order_time,'%Y'),O.actualmoney,'0')) now,
+				SUM(IF(YEAR(CURDATE())-1=DATE_FORMAT(O.place_order_time,'%Y'),O.actualmoney,'0')) beFor
+			</if>
+			<if test="timeFrame == 'quarter'">
+				SUM(IF(QUARTER(CURDATE())= QUARTER(O.place_order_time),O.actualmoney,'0')) now,
+				SUM(IF(QUARTER(CURDATE())-1= QUARTER(O.place_order_time),O.actualmoney,'0')) beFor
+			</if>
+			<if test="timeFrame == 'month'">
+				SUM(IF(MONTH(CURDATE())= MONTH(O.place_order_time),O.actualmoney,'0')) now,
+				SUM(IF(MONTH(CURDATE())-1= MONTH(O.place_order_time),O.actualmoney,'0')) beFor
+			</if>
+			<if test="timeFrame == 'week'">
+				SUM(IF(WEEK(CURDATE())= WEEK(O.place_order_time),O.actualmoney,'0')) now,
+	 			SUM(IF(WEEK(CURDATE())-1= WEEK(O.place_order_time),O.actualmoney,'0')) beFor
+			</if>
+			<if test="timeFrame == 'day'">
+				SUM(IF(DATE_FORMAT(CURDATE(),'%Y-%m-%d')= DATE_FORMAT(O.place_order_time,'%Y-%m-%d'),O.actualmoney,'0')) now,
+	 			SUM(IF(date_add(date_format(curdate(),'%Y-%m-%d'), interval -1 day) = DATE_FORMAT(O.place_order_time,'%Y-%m-%d'),O.actualmoney,'0')) beFor
+			</if>
+		FROM orders O
+		LEFT JOIN (SELECT userid,area_id FROM sys_user) su ON O.userid=su.userid
+		LEFT JOIN (SELECT id,parent_ids FROM sys_area WHERE type='5') sa ON sa.id=su.area_id
+		RIGHT JOIN (SELECT id,parent_id,name FROM sys_area WHERE type='4' ) sastorefront 
+			ON sastorefront.id=substring_index(substring_index(sa.parent_ids, ',', 5),	',' ,- 1)
+		WHERE sastorefront.parent_id=#{id}
+		GROUP BY sastorefront.id
+		&lt;!&ndash; ORDER BY SUM(IF(YEAR(CURDATE())=DATE_FORMAT(O.place_order_time,'%Y'),O.actualmoney,'0')),
+		SUM(IF(YEAR(CURDATE())-1=DATE_FORMAT(O.place_order_time,'%Y'),O.actualmoney,'0'))  &ndash;&gt;
+	</select>
+	
+	<select id="salectUserAchievement"  resultType="cn.rh.entity.order.SalesKanbanB">
+		SELECT 
+			su.name,			
+			<if test="timeFrame == 'year'">
+				SUM(IF(YEAR(CURDATE())=DATE_FORMAT(O.place_order_time,'%Y'),O.actualmoney,'0')) now,
+				SUM(IF(YEAR(CURDATE())-1=DATE_FORMAT(O.place_order_time,'%Y'),O.actualmoney,'0')) beFor
+			</if>
+			<if test="timeFrame == 'quarter'">
+				SUM(IF(QUARTER(CURDATE())= QUARTER(O.place_order_time),O.actualmoney,'0')) now,
+				SUM(IF(QUARTER(CURDATE())-1= QUARTER(O.place_order_time),O.actualmoney,'0')) beFor
+			</if>
+			<if test="timeFrame == 'month'">
+				SUM(IF(MONTH(CURDATE())= MONTH(O.place_order_time),O.actualmoney,'0')) now,
+				SUM(IF(MONTH(CURDATE())-1= MONTH(O.place_order_time),O.actualmoney,'0')) beFor
+			</if>
+			<if test="timeFrame == 'week'">
+				SUM(IF(WEEK(CURDATE())= WEEK(O.place_order_time),O.actualmoney,'0')) now,
+	 			SUM(IF(WEEK(CURDATE())-1= WEEK(O.place_order_time),O.actualmoney,'0')) beFor
+			</if>
+			<if test="timeFrame == 'day'">
+				SUM(IF(DATE_FORMAT(CURDATE(),'%Y-%m-%d')= DATE_FORMAT(O.place_order_time,'%Y-%m-%d'),O.actualmoney,'0')) now,
+	 			SUM(IF(date_add(date_format(curdate(),'%Y-%m-%d'), interval -1 day) = DATE_FORMAT(O.place_order_time,'%Y-%m-%d'),O.actualmoney,'0')) beFor
+			</if>
+		FROM orders O
+		RIGHT JOIN (SELECT userid,area_id,name FROM sys_user) su ON O.userid=su.userid
+		LEFT JOIN (SELECT id,parent_ids FROM sys_area WHERE type='5') sa ON sa.id=su.area_id
+		WHERE su.area_id IS NOT NULL AND 
+		substring_index(substring_index(sa.parent_ids, ',', 5), ',' ,- 1)=#{id}
+		GROUP BY su.userid
+	</select>
+	&lt;!&ndash; 添加授权人 &ndash;&gt;
+	<select id="selectGradeId" resultType="string">
+		SELECT id FROM grade WHERE name=#{name} AND userid=#{userid}
+	</select>
+	<insert id="insertGrade">
+		INSERT INTO grade(id,userid,name)VALUES(#{id},#{userid},#{name})
+	</insert>
+	<insert id="insertGradeB">
+		INSERT INTO grade_b(id,grade_id,userid)VALUES(#{id},#{gradeId},#{userid})
+	</insert>
+	
+	<select id="selectGrade" resultType="cn.rh.entity.grade.GradeB">
+		SELECT gb.id,gb.grade_id gradeId,gb.userid,
+			   su.name,su.phone,su.posioion,su.department 
+		FROM grade g 
+			LEFT JOIN grade_b gb ON g.id=gb.grade_id
+			LEFT JOIN (SELECT su.userid,su.name ,su.phone,sap.name posioion,sad.name department
+			FROM sys_user su 
+			LEFT JOIN sys_area sap ON su.area_id=sap.id
+			LEFT JOIN sys_area sad ON substring_index(substring_index(sap.parent_ids, ',', 3),	',' ,- 1)=sad.id) AS su ON su.userid=gb.userid
+		WHERE g.name=#{name}	AND g.userid=#{userid}
+	</select>
+	&lt;!&ndash; 删除授权人 &ndash;&gt;
+	<select id="selectCountByGradeId"  resultType="string">
+		SELECT COUNT(id) FROM grade_b WHERE grade_id=#{gradeId}
+	</select>
+	<delete id="deleteGrade">
+		DELETE FROM grade WHERE id=#{id}
+	</delete>
+	<delete id="deleteGradeB">
+		DELETE FROM grade_b WHERE id=#{id} AND grade_id=#{gradeId}
+	</delete>
+	&lt;!&ndash; 查询别人授权给我的 &ndash;&gt;
+	<select id="selectGradeMe" resultType="string">
+		SELECT g.userid	FROM grade_b gb
+			LEFT JOIN grade g ON gb.grade_id=g.id
+		WHERE g.name='customer' 	AND gb.userid=#{userid}
+	</select>-->
+	
+	
+	
+	
+	
+</mapper>
