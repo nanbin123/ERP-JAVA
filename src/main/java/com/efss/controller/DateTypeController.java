@@ -18,6 +18,7 @@ public class DateTypeController extends BaseController {
     @Autowired
     private DateTypeService dateTypeService;
 
+
     //根据type 查询name
     @PostMapping("selectDataType")
     public JsonResult selectDataType(String type){

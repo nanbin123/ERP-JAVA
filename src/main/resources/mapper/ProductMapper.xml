@@ -5,27 +5,25 @@
 
 	<select id="selectListProduct" resultType="com.efss.entity.product.ProductRecord" >
 		SELECT
-		A.id,A.product_name productName,A.type,
-		A.size,	A.color,A.texture,A.product_category_b_id productCategoryBid,
-		A.price,A.production,
-		A.purchaseprice,
-		IF(A.sold_out = '0','正常在架','已下架') soldOut,
-		IF(A.conventional ='0','常规产品','定制产品')conventional,
-		B.category productType,
-		A.index_img_url indexImgUrl,
-		(CASE A.assembly WHEN '0' THEN '整件' WHEN '1' THEN '套件' WHEN '2' THEN '子件' ELSE '' END) assembly
-		FROM	product_record  A
-		LEFT JOIN product_category_b B ON A.product_category_b_id=B.id
-		LEFT JOIN sys_user su ON A.userid=su.userid
+			A.id,A.product_name productName,A.type,
+			A.size,	A.color,A.texture,
+			A.retail_price retailPrice,A.production,
+			A.purchase_price purchasePrice,
+			IF(A.sold_out = '0','正常在架','已下架') soldOut,
+			IF(A.conventional ='0','常规产品','定制产品')conventional,
+			pc.category productType,
+			ps.name purchaseSupplierId,
+			A.index_img_url indexImgUrl,
+			(CASE A.state WHEN '0' THEN '整件' WHEN '1' THEN '套件' WHEN '2' THEN '子件' ELSE '' END) state
+		FROM	product  A
+		LEFT JOIN product_category pc ON A.product_category_id=pc.id
+		LEFT JOIN purchase_supplier ps ON A.purchase_supplier_id=ps.id
 		<where>
-			<if test="assembly !=null and assembly!=''">
-				AND  A.assembly=#{assembly}
-			</if>
-			<if test="id !=null and id !=''">
-				AND  A.id=#{id}
-			</if>
 			<if test="productNameOrType !=null and productNameOrType!=''">
-				AND (A.product_name LIKE "%"#{productNameOrType}"%" OR A.type  LIKE "%"#{productNameOrType}"%")
+				(A.product_name LIKE CONCAT('%',#{productNameOrType},'%') OR A.type  LIKE CONCAT('%',#{productNameOrType},'%'))
+			</if>
+			<if test="state !=null  and state!=''">
+				AND A.state =#{state}
 			</if>
 			<trim prefix="AND (" suffix=")" prefixOverrides="OR" >
 				<if test="lowerShelf != null and lowerShelf !=''">
@@ -42,320 +40,427 @@
 				</if>
 			</trim>
 		</where>
-		GROUP BY A.id
 		ORDER BY A.create_date DESC
 	</select>
 
 
-
-
-  <insert id="insertAssembly">
-  		insert into product_assembly (id,product_quote_id,productid) values (#{id},#{productQuoteId},#{productid});
-  </insert>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   <!-- 查询本公司数据 -->
-  <select id="selectProduct" resultType="com.efss.entity.product.ProductRecord" >
-	SELECT
-		A.id,A.product_name productName,A.type,
-		A.size,	A.color,A.texture,
-		A.price,A.production
-	FROM
-		product_record  A
-	LEFT JOIN sys_user su ON A.userid=su.userid
- 	LEFT JOIN sys_area sa ON su.area_id=sa.id
-	WHERE A.sold_out='0' 
-	<if test="dsf !=null and dsf !=''">
-	      <!-- 数据范围过滤 -->
-	      AND ${dsf}
-	</if>
-	<if test="nameOrtype != null and nameOrtype !=''">
-		AND (A.product_name =#{nameOrtype} OR A.type=#{nameOrtype})
-	</if>
-  </select>
-  
-
-  
-  <select id="selectProductAnalysis" resultType="com.efss.entity.product.ProductAnalysis">
-  	SELECT 
-		 P.id, P.index_img_url indexImgUrl,P.product_name productName,P.type,P.size,P.color,P.texture,P.price,P.production,
-   		 O.place_order_time,O.id orderid, O.actualmoney,
-         PCB.category productType,
-		 SUM(CP.number)  AS salesNumber,		
-		 O.actualmoney/ORDERCP.totalMoney*P.price AS salesMoney
-	FROM orders O
-	
-	LEFT JOIN sys_user su ON O.userid=su.userid
-	LEFT JOIN sys_area sa ON su.area_id=sa.id
-	<!-- 计算折扣 -->
-	LEFT JOIN (SELECT customer_id,SUM(custp.number*p.price) totalMoney
-	FROM customer_product custp LEFT JOIN product_record p ON custp.productid=p.id
-	WHERE number>0 GROUP BY customer_id) AS ORDERCP ON ORDERCP.customer_id=O.customer_id
-	
-	LEFT JOIN customer_product CP ON CP.customer_id=ORDERCP.customer_id
-	LEFT JOIN product_record P ON CP.productid=P.id
-	LEFT JOIN product_category_b PCB ON P.product_category_b_id=PCB.id 
-	<!-- 只要已经下单的 -->
-	WHERE IFNULL(CP.number,0)>0 
-	<if test="dsf !=null and dsf !=''">
-         <!--  数据范围过滤 -->
-         AND ${dsf}
-    </if>
- 	<if test="strDate !=null and strDate !='' and endDate!=null and endDate!=''">
-		AND DATE_FORMAT(place_order_time,'%Y-%m-%d') BETWEEN #{strDate} AND #{endDate}	
-	</if>
-	<if test="productCategoryBId != null and productCategoryBId !=''">
-		AND PCB.id=#{productCategoryBId}
-	</if>
-	GROUP BY CP.productid
-	<if test="salesNumber !=null and salesNumber!=''">
-		ORDER BY SUM(CP.number) DESC
-	</if>
-	<if test="salesMoney !=null and salesMoney!=''">
-		ORDER BY O.actualmoney/ORDERCP.totalMoney*P.price DESC
-	</if>
-	
-	
-	
-  		
-  </select>
-  
-  
-  <select id="selectProductQuotation" resultType="com.efss.entity.product.ProductRecord">
-   SELECT  
-         A.id, A.index_img_url indexImgUrl,
-         A.product_name productName,
-		 A.type,A.size,A.color,A.texture,
-		 A.price,A.production ,
-		 B.category productType,
-         IF(ISNULL(C.productid),'NO','YES') isMine
-	 FROM	product_record  A
-	   LEFT JOIN product_category_b B ON A.product_category_b_id=B.id
-	   LEFT JOIN (SELECT productid,userid FROM product_mine WHERE userid=#{userid}) C ON A.id=C.productid
-	   LEFT JOIN sys_user su ON A.userid=su.userid
-	   LEFT JOIN sys_area sa ON su.area_id=sa.id	   
-	   WHERE A.sold_out='0'	  AND (A.is_assembly='no' OR A.is_assembly='combination')
-     <if test="dsf !=null and dsf !=''">
-           <!-- 数据范围过滤 -->
-          AND ${dsf}
-     </if>
-	 <if test="type != null and type != ''">
-		AND (A.type LIKE "%"#{type}"%" OR A.product_name LIKE "%"#{type}"%")
-	</if>
-	 <if test="productCategoryBId != null and productCategoryBId != ''">
-	 	 AND A.product_category_b_id= #{productCategoryBId}
-	 </if>
-	 ORDER BY isMine DESC,B.id
-  </select>
-  
-  
-   <select id="selectProductMine" resultType="com.efss.entity.product.ProductRecord">
-  	 SELECT  
-         A.id, A.index_img_url indexImgUrl,
-         A.product_name productName,
-		 A.type,A.size,A.color,A.texture,
-		 A.price,A.production ,
-		 B.category productType
-	 FROM	product_record  A
-	   LEFT JOIN product_category_b B ON A.product_category_b_id=B.id
-	   LEFT JOIN product_mine C ON A.id=C.productid
-	   WHERE A.sold_out='0'   AND C.userid=#{userid}
-	   ORDER BY B.id
-  </select>
-  
-  
-  
-  <select id="selectProductGetImgById" resultType="com.efss.entity.product.ProductRecord">
-  	SELECT	index_img_url indexImgUrl FROM	product_record WHERE id = #{id}
-  </select>
-  
-  
-  
-  
-  
-  <insert id="insertProduct">
-  		INSERT INTO product_record (
-			id,
-			userid,
-			product_category_b_id,
-			product_name,
-			type,
-			size,
-			color,
-			texture,
-			price,
-			production,
-			purchaseprice,
-			sold_out,
-			conventional,
-			assembly,
-			index_img_url,
-			create_date
-			) VALUES(
+	<insert id="insertProduct">
+		 INSERT INTO product
+		<trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="id != null and id!=''">
+				id,
+			</if>
+			<if test="userid != null and userid !=''">
+				userid,
+			</if>
+			<if test="productCategoryId != null and productCategoryId !=''">
+				product_category_id,
+			</if>
+			<if test="purchaseSupplierId != null and purchaseSupplierId !=''">
+				purchase_supplier_id,
+			</if>
+			<if test="productName != null and productName !=''">
+				product_name,
+			</if>
+			<if test="type != null and type !=''">
+				type,
+			</if>
+			<if test="size != null and size !=''">
+				size,
+			</if>
+			<if test="color != null and color !=''">
+				color,
+			</if>
+			<if test="texture != null and texture !=''">
+				texture,
+			</if>
+			<if test="retailPrice != null and retailPrice !=''">
+				retail_price,
+			</if>
+			<if test="production != null and production !=''">
+				production,
+			</if>
+			<if test="purchasePrice != null and purchasePrice !=''">
+				purchase_price,
+			</if>
+			<if test="soldOut != null and soldOut !=''">
+				sold_out,
+			</if>
+			<if test="conventional != null and conventional !=''">
+				conventional,
+			</if>
+			<if test="state != null and state !=''">
+				state,
+			</if>
+			<if test="indexImgUrl != null and indexImgUrl !=''">
+				index_img_url,
+			</if>
+			<if test="createDate != null">
+				create_date
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="id != null and id!=''">
 				#{id},
+			</if>
+			<if test="userid != null and userid !=''">
 				#{userid},
-				#{productCategoryBid},
+			</if>
+			<if test="productCategoryId != null and productCategoryId !=''">
+				#{productCategoryId},
+			</if>
+			<if test="purchaseSupplierId != null and purchaseSupplierId !=''">
+				#{purchaseSupplierId},
+			</if>
+			<if test="productName != null and productName !=''">
 				#{productName},
+			</if>
+			<if test="type != null and type !=''">
 				#{type},
+			</if>
+			<if test="size != null and size !=''">
 				#{size},
+			</if>
+			<if test="color != null and color !=''">
 				#{color},
+			</if>
+			<if test="texture != null and texture !=''">
 				#{texture},
-				#{price},
+			</if>
+			<if test="retailPrice != null and retailPrice !=''">
+				#{retailPrice},
+			</if>
+			<if test="production != null and production !=''">
 				#{production},
-				#{purchaseprice},
+			</if>
+			<if test="purchasePrice != null and purchasePrice !=''">
+				#{purchasePrice},
+			</if>
+			<if test="soldOut != null and soldOut !=''">
 				#{soldOut},
+			</if>
+			<if test="conventional != null and conventional !=''">
 				#{conventional},
-				#{assembly},
+			</if>
+			<if test="state != null and state !=''">
+				#{state},
+			</if>
+			<if test="indexImgUrl != null and indexImgUrl !=''">
 				#{indexImgUrl},
+			</if>
+			<if test="createDate != null">
 				#{createDate}
-			)
-  </insert>
-  
-  <update id="updateProduct">
-  	update product_record
-  		<set>
-  			<if test="productCategoryBid != null and productCategoryBid!=''">
-	      		product_category_b_id = #{productCategoryBid},
-	      	</if>	      
-	      	<if test="soldOut != null and soldOut!=''">
-	      		sold_out= #{soldOut},
-	      	</if>
-	      	<if test="conventional != null and conventional!=''">
-	      		conventional= #{conventional},
-	      	</if>
-	      	<if test="indexImgUrl != null and indexImgUrl!=''">
-	      		index_img_url= #{indexImgUrl}
-	      	</if>
-	      	<if test="areaid !=null and areaid !=''">
-	      	    areaid=#{areaid}
-	      	</if>
-  		</set>
-  	where id=#{id}
-  </update>
-  
-  
-  <insert id="savecategory">
-		INSERT INTO product_category (id,userid,category,delete_flag) VALUES (#{id},#{userid},#{category},'0')
-  </insert>
-  
-    <select id="selectCategory" resultType="com.efss.entity.product.ProductCategory">
-		SELECT  A.id,A.category	FROM product_category AS A
-				LEFT JOIN sys_user su ON A.userid=su.userid
-				LEFT JOIN sys_area sa ON su.area_id=sa.id	
-		WHERE A.delete_flag='0'	
-		<if test="dsf !=null and dsf !=''">
-	      <!-- 数据范围过滤 -->
-	        AND ${dsf}
-		</if>
+			</if>
+		</trim>
+     </insert>
+
+
+
+
+
+	<select id="selectCategory" resultType="com.efss.entity.product.ProductCategory">
+		SELECT  id,category	FROM product_category	WHERE delflag='0'
 	</select>
-	
-	<update id="updateCategory">
-		UPDATE product_category SET category=#{category} WHERE id=#{id}		
-	</update>
-	
-	<update id="deleteCategory">
-		UPDATE product_category SET delete_flag='1' WHERE id=#{id}
-	</update>
-	
-	<select id="selectCategoryB" resultType="com.efss.entity.product.ProductCategoryB">
-		SELECT  id,category,img	FROM product_category_b WHERE product_category_id=#{productCategoryId}	
-	</select>
-	
-	<insert id="insertCategoryB">
-		INSERT INTO product_category_b (id,product_category_id,category,img) VALUES(#{id},#{productCategoryId},#{category},#{img})
+
+
+
+
+	<insert id="insertProductCategory">
+		insert into product_category
+		<trim prefix="(" suffix=")" suffixOverrides="," >
+			<if test="id != null" >
+				id,
+			</if>
+			<if test="userid != null" >
+				userid,
+			</if>
+			<if test="category != null" >
+				category,
+			</if>
+			<if test="delflag != null" >
+				delflag
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides="," >
+			<if test="id != null" >
+				#{id},
+			</if>
+			<if test="userid != null" >
+				#{userid},
+			</if>
+			<if test="category != null" >
+				#{category},
+			</if>
+			<if test="delflag != null" >
+				#{delflag}
+			</if>
+		</trim>
 	</insert>
-	
-	<update id="updateCategoryB">
-		UPDATE product_category_b SET category=#{category} WHERE id=#{id}
+
+	<update id="updateProductCategory">
+		UPDATE product_category
+		<set>
+			<if test="category != null and category!=''">
+				category = #{category},
+			</if>
+			<if test="delflag != null and delflag!=''">
+				delflag= #{delflag}
+			</if>
+		</set>
+		where id=#{id}
 	</update>
-	
-	<update id="deleteCategoryB">
-		DELETE FROM product_category_b WHERE id = #{id}
-	</update>
-  
-  
 
- <insert id="insertproductQuotationB" parameterType="com.efss.entity.product.ProductImage" >
-    insert into product_record_img
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-       <if test="userid != null" >
-        userid,
-      </if>
-      <if test="productRecordId != null" >
-        product_record_id,
-      </if>
-      <if test="imageUrl != null" >
-        image_url,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-       #{id,jdbcType=VARCHAR},
-      </if>
-       <if test="userid != null" >
-       #{userid,jdbcType=VARCHAR},        
-      </if>
-      <if test="productRecordId != null" >
-        #{productRecordId,jdbcType=VARCHAR},
-      </if>
-      <if test="imageUrl != null" >
-        #{imageUrl,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>  
-  
 
-  
-  <select id="selectProductQuotationB" resultType="com.efss.entity.product.ProductImage">
-  		SELECT id,image_url imageUrl FROM product_record_img WHERE product_record_id=#{id} AND userid=#{userid}
-  </select>
-  
-  <select id="selectProductQuotationBbyId" resultType="com.efss.entity.product.ProductImage">
-  		SELECT id,image_url imageUrl FROM product_record_img WHERE id=#{id}
-  </select>
-  
-  <delete id="deleteProductQuotationB">
-  		DELETE FROM product_record_img WHERE id=#{id}
-  </delete>
-  
- <insert id="insertProductMine">
- 	INSERT INTO product_mine (userid,productid) VALUES(#{userid},#{productid})
- </insert>
- 
- <delete id="deleteProductMine">
- 	DELETE FROM product_mine WHERE userid=#{userid} AND productid=#{productid}
- </delete>
+	<insert id="insertAssembly">
+             insert into product_assembly (id,productid,product_assembly_id) values (#{id},#{productid},#{productAssemblyId});
+     </insert>
 
-  
-  <select id="selectAssembly" resultType="com.efss.entity.product.ProductRecord">
-     SELECT
-		A.id,A.product_name productName,A.type,
-		A.size,	A.color,A.texture,
-		A.price,A.production,A.purchaseprice,  IF(A.sold_out = '0','正常在架','已下架') soldOut,
-	    IF(A.conventional ='0','常规产品','定制产品')conventional,
-		B.category productType 
-	FROM product_assembly pa
-	LEFT JOIN  product_record  A  ON pa.productid=A.id
-    LEFT JOIN product_category_b B ON A.product_category_b_id=B.id
-    LEFT JOIN (SELECT a.id,a.is_assembly from product_record a LEFT JOIN product_assembly b ON a.id=b.id) C ON A.id=C.id
-	WHERE pa.product_quote_id=#{id}
-  </select>
+
+	<!--
+
+      &lt;!&ndash; 查询本公司数据 &ndash;&gt;
+     <select id="selectProduct" resultType="com.efss.entity.product.ProductRecord" >
+       SELECT
+           A.id,A.product_name productName,A.type,
+           A.size,	A.color,A.texture,
+           A.price,A.production
+       FROM
+           product_record  A
+       LEFT JOIN sys_user su ON A.userid=su.userid
+        LEFT JOIN sys_area sa ON su.area_id=sa.id
+       WHERE A.sold_out='0'
+       <if test="dsf !=null and dsf !=''">
+             &lt;!&ndash; 数据范围过滤 &ndash;&gt;
+             AND ${dsf}
+       </if>
+       <if test="nameOrtype != null and nameOrtype !=''">
+           AND (A.product_name =#{nameOrtype} OR A.type=#{nameOrtype})
+       </if>
+     </select>
+
+
+
+     <select id="selectProductAnalysis" resultType="com.efss.entity.product.ProductAnalysis">
+         SELECT
+            P.id, P.index_img_url indexImgUrl,P.product_name productName,P.type,P.size,P.color,P.texture,P.price,P.production,
+               O.place_order_time,O.id orderid, O.actualmoney,
+            PCB.category productType,
+            SUM(CP.number)  AS salesNumber,
+            O.actualmoney/ORDERCP.totalMoney*P.price AS salesMoney
+       FROM orders O
+
+       LEFT JOIN sys_user su ON O.userid=su.userid
+       LEFT JOIN sys_area sa ON su.area_id=sa.id
+       &lt;!&ndash; 计算折扣 &ndash;&gt;
+       LEFT JOIN (SELECT customer_id,SUM(custp.number*p.price) totalMoney
+       FROM customer_product custp LEFT JOIN product_record p ON custp.productid=p.id
+       WHERE number>0 GROUP BY customer_id) AS ORDERCP ON ORDERCP.customer_id=O.customer_id
+
+       LEFT JOIN customer_product CP ON CP.customer_id=ORDERCP.customer_id
+       LEFT JOIN product_record P ON CP.productid=P.id
+       LEFT JOIN product_category_b PCB ON P.product_category_b_id=PCB.id
+       &lt;!&ndash; 只要已经下单的 &ndash;&gt;
+       WHERE IFNULL(CP.number,0)>0
+       <if test="dsf !=null and dsf !=''">
+            &lt;!&ndash;  数据范围过滤 &ndash;&gt;
+            AND ${dsf}
+       </if>
+        <if test="strDate !=null and strDate !='' and endDate!=null and endDate!=''">
+           AND DATE_FORMAT(place_order_time,'%Y-%m-%d') BETWEEN #{strDate} AND #{endDate}
+       </if>
+       <if test="productCategoryBId != null and productCategoryBId !=''">
+           AND PCB.id=#{productCategoryBId}
+       </if>
+       GROUP BY CP.productid
+       <if test="salesNumber !=null and salesNumber!=''">
+           ORDER BY SUM(CP.number) DESC
+       </if>
+       <if test="salesMoney !=null and salesMoney!=''">
+           ORDER BY O.actualmoney/ORDERCP.totalMoney*P.price DESC
+       </if>
+
+
+
+
+     </select>
+
+
+     <select id="selectProductQuotation" resultType="com.efss.entity.product.ProductRecord">
+      SELECT
+            A.id, A.index_img_url indexImgUrl,
+            A.product_name productName,
+            A.type,A.size,A.color,A.texture,
+            A.price,A.production ,
+            B.category productType,
+            IF(ISNULL(C.productid),'NO','YES') isMine
+        FROM	product_record  A
+          LEFT JOIN product_category_b B ON A.product_category_b_id=B.id
+          LEFT JOIN (SELECT productid,userid FROM product_mine WHERE userid=#{userid}) C ON A.id=C.productid
+          LEFT JOIN sys_user su ON A.userid=su.userid
+          LEFT JOIN sys_area sa ON su.area_id=sa.id
+          WHERE A.sold_out='0'	  AND (A.is_assembly='no' OR A.is_assembly='combination')
+        <if test="dsf !=null and dsf !=''">
+              &lt;!&ndash; 数据范围过滤 &ndash;&gt;
+             AND ${dsf}
+        </if>
+        <if test="type != null and type != ''">
+           AND (A.type LIKE "%"#{type}"%" OR A.product_name LIKE "%"#{type}"%")
+       </if>
+        <if test="productCategoryBId != null and productCategoryBId != ''">
+             AND A.product_category_b_id= #{productCategoryBId}
+        </if>
+        ORDER BY isMine DESC,B.id
+     </select>
+
+
+      <select id="selectProductMine" resultType="com.efss.entity.product.ProductRecord">
+          SELECT
+            A.id, A.index_img_url indexImgUrl,
+            A.product_name productName,
+            A.type,A.size,A.color,A.texture,
+            A.price,A.production ,
+            B.category productType
+        FROM	product_record  A
+          LEFT JOIN product_category_b B ON A.product_category_b_id=B.id
+          LEFT JOIN product_mine C ON A.id=C.productid
+          WHERE A.sold_out='0'   AND C.userid=#{userid}
+          ORDER BY B.id
+     </select>
+
+
+
+     <select id="selectProductGetImgById" resultType="com.efss.entity.product.ProductRecord">
+         SELECT	index_img_url indexImgUrl FROM	product_record WHERE id = #{id}
+     </select>
+
+
+
+
+
+
+     <update id="updateProduct">
+         update product_record
+             <set>
+                 <if test="productCategoryBid != null and productCategoryBid!=''">
+                     product_category_b_id = #{productCategoryBid},
+                 </if>
+                 <if test="soldOut != null and soldOut!=''">
+                     sold_out= #{soldOut},
+                 </if>
+                 <if test="conventional != null and conventional!=''">
+                     conventional= #{conventional},
+                 </if>
+                 <if test="indexImgUrl != null and indexImgUrl!=''">
+                     index_img_url= #{indexImgUrl}
+                 </if>
+                 <if test="areaid !=null and areaid !=''">
+                     areaid=#{areaid}
+                 </if>
+             </set>
+         where id=#{id}
+     </update>
+
+
+     <insert id="savecategory">
+           INSERT INTO product_category (id,userid,category,delete_flag) VALUES (#{id},#{userid},#{category},'0')
+     </insert>
+
+
+
+       <update id="updateCategory">
+           UPDATE product_category SET category=#{category} WHERE id=#{id}
+       </update>
+
+       <update id="deleteCategory">
+           UPDATE product_category SET delete_flag='1' WHERE id=#{id}
+       </update>
+
+       <select id="selectCategoryB" resultType="com.efss.entity.product.ProductCategoryB">
+           SELECT  id,category,img	FROM product_category_b WHERE product_category_id=#{productCategoryId}
+       </select>
+
+       <insert id="insertCategoryB">
+           INSERT INTO product_category_b (id,product_category_id,category,img) VALUES(#{id},#{productCategoryId},#{category},#{img})
+       </insert>
+
+       <update id="updateCategoryB">
+           UPDATE product_category_b SET category=#{category} WHERE id=#{id}
+       </update>
+
+       <update id="deleteCategoryB">
+           DELETE FROM product_category_b WHERE id = #{id}
+       </update>
+
+
+
+    <insert id="insertproductQuotationB" parameterType="com.efss.entity.product.ProductImage" >
+       insert into product_record_img
+       <trim prefix="(" suffix=")" suffixOverrides="," >
+         <if test="id != null" >
+           id,
+         </if>
+          <if test="userid != null" >
+           userid,
+         </if>
+         <if test="productRecordId != null" >
+           product_record_id,
+         </if>
+         <if test="imageUrl != null" >
+           image_url,
+         </if>
+       </trim>
+       <trim prefix="values (" suffix=")" suffixOverrides="," >
+         <if test="id != null" >
+          #{id,jdbcType=VARCHAR},
+         </if>
+          <if test="userid != null" >
+          #{userid,jdbcType=VARCHAR},
+         </if>
+         <if test="productRecordId != null" >
+           #{productRecordId,jdbcType=VARCHAR},
+         </if>
+         <if test="imageUrl != null" >
+           #{imageUrl,jdbcType=VARCHAR},
+         </if>
+       </trim>
+     </insert>
+
+
+
+     <select id="selectProductQuotationB" resultType="com.efss.entity.product.ProductImage">
+             SELECT id,image_url imageUrl FROM product_record_img WHERE product_record_id=#{id} AND userid=#{userid}
+     </select>
+
+     <select id="selectProductQuotationBbyId" resultType="com.efss.entity.product.ProductImage">
+             SELECT id,image_url imageUrl FROM product_record_img WHERE id=#{id}
+     </select>
+
+     <delete id="deleteProductQuotationB">
+             DELETE FROM product_record_img WHERE id=#{id}
+     </delete>
+
+    <insert id="insertProductMine">
+        INSERT INTO product_mine (userid,productid) VALUES(#{userid},#{productid})
+    </insert>
+
+    <delete id="deleteProductMine">
+        DELETE FROM product_mine WHERE userid=#{userid} AND productid=#{productid}
+    </delete>
+
+
+     <select id="selectAssembly" resultType="com.efss.entity.product.ProductRecord">
+        SELECT
+           A.id,A.product_name productName,A.type,
+           A.size,	A.color,A.texture,
+           A.price,A.production,A.purchaseprice,  IF(A.sold_out = '0','正常在架','已下架') soldOut,
+           IF(A.conventional ='0','常规产品','定制产品')conventional,
+           B.category productType
+       FROM product_assembly pa
+       LEFT JOIN  product_record  A  ON pa.productid=A.id
+       LEFT JOIN product_category_b B ON A.product_category_b_id=B.id
+       LEFT JOIN (SELECT a.id,a.is_assembly from product_record a LEFT JOIN product_assembly b ON a.id=b.id) C ON A.id=C.id
+       WHERE pa.product_quote_id=#{id}
+     </select>-->
   
 	
 </mapper>

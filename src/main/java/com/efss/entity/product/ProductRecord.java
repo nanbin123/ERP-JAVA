@@ -2,82 +2,71 @@ package com.efss.entity.product;
 
 import java.util.*;
 
+import com.efss.entity.BaseEntity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProductRecord{	
-   
-	private static final long serialVersionUID = 1L;
+public class ProductRecord extends BaseEntity<ProductRecord> {
 
-	private String id;
 
-    private String userid;
-    
-    private String productCategoryBid;//产品类型的id
+	private String productCategoryId;//产品类型的id
 
-    private String productName;//品名
+	private String productType; //产品类型
 
-    private String type;//型号
+	private String purchaseSupplierId;//供应商
 
-    private String size;//尺寸
+	private String productName;//品名
 
-    private String color;//颜色
+	private String type;//型号
 
-    private String texture;//材质
+	private String size;//尺寸
 
-    private String price;//零售价
+	private String color;//颜色
 
-    private String production;//产地
+	private String texture;//材质
 
-    private String purchaseprice;//采购售价
-    
-    private String soldOut;		// 是否在架   0 是正常在架  1 已经下架
-    
-    private String conventional; // 常规定制 0是常规产品 1 定制产品
-    
-    private String productType; //产品类型
-    
-    private String indexImgUrl;//产品首页图片
-    
-    private String isMine;//是否添加至我的购物车
-    
-    private String assembly;//是否是组件   no是整件 yes是组件    combination组合
-    
-    private String areaName;
-    
-    private String areaid;
-    
-    private Date createDate;   
-    
-    private List<ProductAssembly> assList =new ArrayList<ProductAssembly>();;//组件产品上传
-    
+	private String retailPrice;//零售价
+
+	private String production;//产地
+
+	private String purchasePrice;//采购价
+
+	private String soldOut;    // 是否在架   0 是正常在架  1 已经下架
+
+	private String conventional; // 常规定制 0是常规产品 1 定制产品
+
+	private String state;//货物状态   '0  整件' ,'1套件' '2 子件'
+
+	private String indexImgUrl;//产品首页图片
+
+	private String isMine;//是否添加至我的购物车
+
     private List<ProductRecord> recordList= new ArrayList<ProductRecord>();//组件产品返回
-    
-   
-	
- 
-	public String getId() {
-		return id;
+
+	private List<ProductAssembly> productAssembly;//子件
+
+	public String getProductCategoryId() {
+		return productCategoryId;
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public void setProductCategoryId(String productCategoryId) {
+		this.productCategoryId = productCategoryId;
 	}
 
-	public String getUserid() {
-		return userid;
+	public String getProductType() {
+		return productType;
 	}
 
-	public void setUserid(String userid) {
-		this.userid = userid;
-	}
-	
-	public String getProductCategoryBid() {
-		return productCategoryBid;
+	public void setProductType(String productType) {
+		this.productType = productType;
 	}
 
-	public void setProductCategoryBid(String productCategoryBid) {
-		this.productCategoryBid = productCategoryBid;
+	public String getPurchaseSupplierId() {
+		return purchaseSupplierId;
+	}
+
+	public void setPurchaseSupplierId(String purchaseSupplierId) {
+		this.purchaseSupplierId = purchaseSupplierId;
 	}
 
 	public String getProductName() {
@@ -108,14 +97,6 @@ public class ProductRecord{
 		return color;
 	}
 
-	public List<ProductRecord> getRecordList() {
-		return recordList;
-	}
-
-	public void setRecordList(List<ProductRecord> recordList) {
-		this.recordList = recordList;
-	}
-
 	public void setColor(String color) {
 		this.color = color;
 	}
@@ -128,12 +109,12 @@ public class ProductRecord{
 		this.texture = texture;
 	}
 
-	public String getPrice() {
-		return price;
+	public String getRetailPrice() {
+		return retailPrice;
 	}
 
-	public void setPrice(String price) {
-		this.price = price;
+	public void setRetailPrice(String retailPrice) {
+		this.retailPrice = retailPrice;
 	}
 
 	public String getProduction() {
@@ -144,12 +125,12 @@ public class ProductRecord{
 		this.production = production;
 	}
 
-	public String getPurchaseprice() {
-		return purchaseprice;
+	public String getPurchasePrice() {
+		return purchasePrice;
 	}
 
-	public void setPurchaseprice(String purchaseprice) {
-		this.purchaseprice = purchaseprice;
+	public void setPurchasePrice(String purchasePrice) {
+		this.purchasePrice = purchasePrice;
 	}
 
 	public String getSoldOut() {
@@ -168,12 +149,12 @@ public class ProductRecord{
 		this.conventional = conventional;
 	}
 
-	public String getProductType() {
-		return productType;
+	public String getState() {
+		return state;
 	}
 
-	public void setProductType(String productType) {
-		this.productType = productType;
+	public void setState(String state) {
+		this.state = state;
 	}
 
 	public String getIndexImgUrl() {
@@ -191,49 +172,20 @@ public class ProductRecord{
 	public void setIsMine(String isMine) {
 		this.isMine = isMine;
 	}
-   
 
-	public List<ProductAssembly> getAssList() {
-		return assList;
-	}
-
-	public void setAssList(List<ProductAssembly> assList) {
-		this.assList = assList;
+	public List<ProductRecord> getRecordList() {
+		return recordList;
 	}
 
-	public static long getSerialversionuid() {
-		return serialVersionUID;
+	public void setRecordList(List<ProductRecord> recordList) {
+		this.recordList = recordList;
 	}
 
-	public String getAssembly() {
-		return assembly;
+	public List<ProductAssembly> getProductAssembly() {
+		return productAssembly;
 	}
 
-	public void setAssembly(String assembly) {
-		this.assembly = assembly;
+	public void setProductAssembly(List<ProductAssembly> productAssembly) {
+		this.productAssembly = productAssembly;
 	}
-
-	public Date getCreateDate() {
-		return createDate;
-	}
-
-	public void setCreateDate(Date createDate) {
-		this.createDate = createDate;
-	}
-	public String getAreaid() {
-		return areaid;
-	}
-
-	public void setAreaid(String areaid) {
-		this.areaid = areaid;
-	}
-
-	public String getAreaName() {
-		return areaName;
-	}
-
-	public void setAreaName(String areaName) {
-		this.areaName = areaName;
-	}
-	
 }

@@ -1,16 +1,15 @@
 package com.efss.entity.product;
 
+import com.efss.entity.BaseEntity;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProductCategory {
+public class ProductCategory extends BaseEntity<ProductCategory> {
 	
 	private String id;
 	
 	private String category;
-	
-	List<ProductCategoryB> list=new ArrayList<ProductCategoryB>();
-	
 
 	public String getId() {
 		return id;
@@ -26,13 +25,5 @@ public class ProductCategory {
 
 	public void setCategory(String category) {
 		this.category = category;
-	}
-
-	public List<ProductCategoryB> getList() {
-		return list;
-	}
-
-	public void setList(List<ProductCategoryB> list) {
-		this.list = list;
 	}
 }

@@ -24,7 +24,14 @@ public abstract class BaseEntity<T> implements Serializable {
 	 * @return
 	 */
 
-	protected Date CreateDate;
+	protected Date createDate;
+
+	/**
+	 * 修改日期
+	 * @return
+	 */
+
+	protected Date updateDate;
 	/**
 	 * 创建人
 	 */
@@ -34,6 +41,11 @@ public abstract class BaseEntity<T> implements Serializable {
 	 * 备注
 	 */
 	private String remark;
+
+	/**
+	 * 删除标志  1  删除   0  正常
+	 */
+	private String delflag;
 
 	public String getId() {
 		return id;
@@ -52,11 +64,11 @@ public abstract class BaseEntity<T> implements Serializable {
 	}
 
 	public Date getCreateDate() {
-		return CreateDate;
+		return createDate;
 	}
 
 	public void setCreateDate(Date createDate) {
-		CreateDate = createDate;
+		this.createDate = createDate;
 	}
 
 	public String getUserName() {
@@ -73,5 +85,24 @@ public abstract class BaseEntity<T> implements Serializable {
 
 	public void setRemark(String remark) {
 		this.remark = remark;
+	}
+
+	public Date getUpdateDate() {
+		return updateDate;
+	}
+
+	public void setUpdateDate(Date updateDate) {
+		this.updateDate = updateDate;
+	}
+
+	public String getDelflag() {
+		if("".equals(delflag)||delflag==null){
+			return "0";
+		}
+		return delflag;
+	}
+
+	public void setDelflag(String delflag) {
+		this.delflag = delflag;
 	}
 }

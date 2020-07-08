@@ -8,14 +8,8 @@
 
 
 	<select id="getUserByUsername" resultType="com.efss.entity.user.User">
-		SELECT su.userid id,su.sessionid,su.officeid,su.name username,su.phone,su.password,su.data_scope dataScope,
-		substring_index(sa.parent_ids, ',', 2) provincesid,
-		substring_index(sa.parent_ids, ',', 3) departmentid,
-		substring_index(sa.parent_ids, ',', 4) regionid,
-		substring_index(sa.parent_ids, ',', 5) storefrontid,
-		sa.id posioionid
+		SELECT su.userid id,su.sessionid,su.officeid,su.name username,su.phone,su.password,su.data_scope dataScope
 		FROM sys_user su
-		LEFT JOIN sys_area sa ON su.area_id=sa.id
 		WHERE su.phone =#{phone}
 	</select>
  	

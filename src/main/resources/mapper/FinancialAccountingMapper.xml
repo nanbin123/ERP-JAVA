@@ -14,7 +14,7 @@
   </insert>
 
 
-  
+
    <select id="selectFinancialAccounting" parameterType="string" resultType="com.efss.entity.finance.FinancialAccountingB">
 	   SELECT
 	   A.id,A.name,	A.money,A.number,A.money*A.number AS totalMoney,A.delete_flag deleteFlag,

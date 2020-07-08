@@ -4,7 +4,7 @@ public class QueryProduct {
 
 	 private String id;
 	
-	 private String assembly;//是否是组件   no是整件 yes是组件    combination组合
+	 private String state;//货物状态   '0  整件' ,'1套件' '2 子件'
 	 
 	 private String lowerShelf;//下架
 	    
@@ -26,12 +26,12 @@ public class QueryProduct {
 		this.id = id;
 	}
 
-	public String getAssembly() {
-		return assembly;
+	public String getState() {
+		return state;
 	}
 
-	public void setAssembly(String assembly) {
-		this.assembly = assembly;
+	public void setState(String state) {
+		this.state = state;
 	}
 
 	public String getLowerShelf() {

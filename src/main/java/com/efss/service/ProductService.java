@@ -18,45 +18,56 @@ public class ProductService extends BaseService{
 
 	@Autowired
 	private ProductMapper productMapper;
-	
-	public List<ProductRecord> selectProduct(String nameOrtype) {
-		 String dsf = dataScopeFilter(UserUtils.getPrincipal(),"sa","su");
-		 List<ProductRecord> selectProduct = productMapper.selectProduct(nameOrtype,dsf);
-		return selectProduct;
+
+
+	public List<ProductRecord> selectListProduct(QueryProduct queryProduct) {
+		return productMapper.selectListProduct(queryProduct);
+	}
+	public int insertProduct(ProductRecord productRecord) {
+		return productMapper.insertProduct(productRecord);
 	}
 
-
 	public int insertAssembly(ProductRecord productRecord) {
-		List<ProductAssembly> productAssembly= productRecord.getAssList();
+		List<ProductAssembly> productAssembly= productRecord.getProductAssembly();
 		int i=0;
 		for(ProductAssembly p : productAssembly){
 			p.setId(IdGen.uuid());
-			p.setProductQuoteId(productRecord.getId());
+			p.setProductid(productRecord.getId());
 			i+= productMapper.insertAssembly(p);
 		}
 		return i;
 	}
 
 
-	public List<ProductRecord> selectListProduct(QueryProduct queryProduct) {
-		//String id,String isAssembly
-		// 生成数据权限过滤条件（dsf为dataScopeFilter的简写，在xml中使用 ${sqlMap.dsf}调用权限SQL）
-		String dsf = dataScopeFilter(UserUtils.getPrincipal(),"sa","su");
-		queryProduct.setDsf(dsf);
-		return productMapper.selectListProduct(queryProduct);
+	public List<ProductCategory> selectCategory() {
+		List<ProductCategory> selectCategory = productMapper.selectCategory();
+		return selectCategory;
 	}
+
+
+	public int insertProductCategory(ProductCategory productCategory){
+		return productMapper.insertProductCategory(productCategory);
+	}
+
+	public int updateProductCategory(ProductCategory productCategory){
+		return productMapper.updateProductCategory(productCategory);
+	}
+
+	/**/
+
+
+
+	/*public List<ProductRecord> selectProduct(String nameOrtype) {
+		 String dsf = dataScopeFilter(UserUtils.getPrincipal(),"sa","su");
+		 List<ProductRecord> selectProduct = productMapper.selectProduct(nameOrtype,dsf);
+		return selectProduct;
+	}
+
+
 
 
 	public void savecategory(String category) {
 		productMapper.savecategory(IdGen.uuid(),UserUtils.getPrincipal().getId(),category);
-	}
-
-	public List<ProductCategory> selectCategory() {
-		String dsf = dataScopeFilter(UserUtils.getPrincipal(),"sa","su");
-		List<ProductCategory> selectCategory = productMapper.selectCategory(dsf);		
-		List<ProductCategoryB> selectCategoryB = productMapper.selectCategoryB(selectCategory.get(0).getId());
-		selectCategory.get(0).setList(selectCategoryB);
-		return selectCategory;
 	}
 
 	public void updateCategory(String id, String category) {
@@ -83,29 +94,17 @@ public class ProductService extends BaseService{
 		productMapper.deleteCategoryB(id);	
 	}
 
-	public void insertProduct(ProductRecord productRecord) {
-		productMapper.insertProduct(productRecord);
-		List<ProductAssembly> list = productRecord.getAssList();
-		if(list != null && list.size()>0){
-			for(ProductAssembly m : list){
-				ProductAssembly organization = new ProductAssembly();
-				organization.setId(IdGen.uuid());
-				organization.setProductQuoteId(productRecord.getId());
-				organization.setProductid(m.getProductid());
-				productMapper.insertAssembly(organization);
-			}
-		}
-	}
+
 
 	public void updateProduct(ProductRecord productRecord,String address,String dir) {
 		ProductRecord product = productMapper.selectProductGetImgById(productRecord.getId());
-		/*if(product!=null && StringUtils.isNotBlank(product.getIndexImgUrl())){
+		*//*if(product!=null && StringUtils.isNotBlank(product.getIndexImgUrl())){
 			String imageUrl = dir.replace("\\", "/")+product.getIndexImgUrl();
 			boolean deleteFile = FileUpLoad.deleteFile(imageUrl);
 			if(deleteFile){
 				productRecord.setIndexImgUrl(address);
 			}
-		}*/
+		}*//*
 		productMapper.updateProduct(productRecord);
 	}
 
@@ -144,10 +143,10 @@ public class ProductService extends BaseService{
 	public void deleteProductQuotationB(String id,String dir) {
 		ProductImage productQuotationB = productMapper.selectProductQuotationBbyId(id);
 		String imageUrl = dir+productQuotationB.getImageUrl().replace("\\", "/");		
-		/*boolean deleteFile = FileUpLoad.deleteFile(imageUrl);
+		*//*boolean deleteFile = FileUpLoad.deleteFile(imageUrl);
 		if(deleteFile){
 			productMapper.deleteProductQuotationB(id);
-		}*/
+		}*//*
 	}
 
 	public void updateProductQuotation(String id, String address, String dir) {
@@ -156,11 +155,11 @@ public class ProductService extends BaseService{
 		if(StringUtils.isNotBlank(productRecord.getIndexImgUrl())){
 			//String imageUrl = dir+productRecord.getIndexImgUrl().replace("/", "\\");
 			String imageUrl = dir.replace("\\", "/")+productRecord.getIndexImgUrl();
-		/*	boolean deleteFile = FileUpLoad.deleteFile(imageUrl);
+		*//*	boolean deleteFile = FileUpLoad.deleteFile(imageUrl);
 			if(deleteFile){
 				productRecord.setIndexImgUrl(address);
 				productMapper.updateProduct(productRecord);
-			}*/
+			}*//*
 			return;
 		}
 		productRecord.setIndexImgUrl(address);
@@ -179,7 +178,7 @@ public class ProductService extends BaseService{
 	
 	public List<ProductRecord> selectAssembly(String id){
 		return productMapper.selectAssembly(id);
-	}
+	}*/
 
 	
 

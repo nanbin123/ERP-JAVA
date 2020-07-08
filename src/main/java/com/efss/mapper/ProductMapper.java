@@ -3,22 +3,33 @@ package com.efss.mapper;
 import java.util.List;
 
 import com.efss.entity.product.*;
-import org.apache.ibatis.annotations.Param;
-
-
 
 
 public interface ProductMapper {
 
-	List<ProductRecord> selectProduct(@Param("nameOrtype") String nameOrtype, @Param("dsf") String dsf);
-
-	int insertAssembly(ProductAssembly record);
 
 	List<ProductRecord> selectListProduct(QueryProduct queryProduct);
+
+	int insertProduct(ProductRecord productRecord);
+
+	int insertAssembly(ProductAssembly productAssembly);
+
+	List<ProductCategory> selectCategory();
+
+	int insertProductCategory(ProductCategory productCategory);
+
+	int updateProductCategory(ProductCategory productCategory);
+
+
+	/*List<ProductRecord> selectProduct(@Param("nameOrtype") String nameOrtype, @Param("dsf") String dsf);
+
+
+
+
 	
 	void savecategory(@Param("id") String id, @Param("userid") String userid, @Param("category") String category);
 
-	List<ProductCategory> selectCategory(@Param("dsf") String dsf);
+
 
 	void updateCategory(@Param("id") String id, @Param("category") String category);
 	     
@@ -33,7 +44,7 @@ public interface ProductMapper {
 
 	void deleteCategoryB(@Param("id") String id);
 
-	void insertProduct(ProductRecord productRecord);
+
 
 	void updateProduct(ProductRecord productRecord);
 	
@@ -60,7 +71,7 @@ public interface ProductMapper {
 
 
 	
-	List<ProductRecord> selectAssembly(@Param("id") String id);
+	List<ProductRecord> selectAssembly(@Param("id") String id);*/
 
 	
 }

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.efss.mapper.PurchaseMapper" >
+
+	<select id="selectPurchaseSupplier" resultType="com.efss.entity.purchase.PurchaseSupplier">
+			SELECT id,name,address,remark,contacts,telephone,phone FROM purchase_supplier  WHERE delflag='0'
+	</select>
+
+	<insert id="insertPurchaseSupplier">
+		INSERT INTO purchase_supplier
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null and id != '' ">
+				id,
+			</if>
+			<if test="userid != null and userid != '' ">
+				userid,
+			</if>
+			<if test="name != null and name != '' ">
+				name,
+			</if>
+			<if test="address != null and address != '' ">
+				address,
+			</if>
+			<if test="remark != null and remark != ''">
+				remark,
+			</if>
+			<if test="contacts != null and contacts != ''">
+				contacts,
+			</if>
+			<if test="telephone != null and telephone != ''">
+				telephone,
+			</if>
+			<if test="phone != null and phone != ''">
+				phone,
+			</if>
+			<if test="delflag != null and delflag != ''">
+				delflag
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null and id != '' ">
+				#{id},
+			</if>
+			<if test="userid != null and userid != '' ">
+				#{userid},
+			</if>
+			<if test="name != null and name != '' ">
+				#{name},
+			</if>
+			<if test="address != null and address != '' ">
+				#{address},
+			</if>
+			<if test="remark != null and remark != ''">
+				#{remark},
+			</if>
+			<if test="contacts != null and contacts != ''">
+				#{contacts},
+			</if>
+			<if test="telephone != null and telephone != ''">
+				#{telephone},
+			</if>
+			<if test="phone != null and phone != ''">
+				#{phone},
+			</if>
+			<if test="delflag != null and delflag != ''">
+				#{delflag}
+			</if>
+		</trim>
+	</insert>
+
+
+
+	<update id="updatePurchaseSupplier">
+		UPDATE purchase_supplier
+		<set>
+			<if test="name != null and name != '' ">
+				name=#{name},
+			</if>
+			<if test="address != null and address != '' ">
+				address=#{address},
+			</if>
+			<if test="remark != null and remark != ''">
+				remark=#{remark},
+			</if>
+			<if test="contacts != null and contacts != ''">
+				contacts=#{contacts},
+			</if>
+			<if test="telephone != null and telephone != ''">
+				telephone=#{telephone},
+			</if>
+			<if test="phone != null and phone != ''">
+				phone=#{phone},
+			</if>
+			<if test="delflag != null and delflag != ''">
+				delflag=#{delflag}
+			</if>
+		</set>
+		WHERE id=#{id}
+	</update>
+ 
+</mapper>

@@ -1,38 +1,32 @@
 package com.efss.controller;
-import java.io.IOException;
-import java.util.*;
-import javax.servlet.http.HttpServletRequest;
 
+import java.util.*;
+
+
+import com.alibaba.fastjson.JSON;
 import com.efss.controller.base.BaseController;
-import com.efss.entity.finance.FinancialAccountingB;
+
 import com.efss.entity.product.*;
-import com.efss.entity.user.JsonResult;
+
 import com.efss.service.ProductService;
 import com.efss.utils.IdGen;
 import com.efss.utils.UserUtils;
 import com.github.pagehelper.Page;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.multipart.MultipartFile;
-import com.alibaba.fastjson.JSON;
+
+import org.springframework.web.bind.annotation.*;
+
 import com.github.pagehelper.PageHelper;
+import org.springframework.web.multipart.MultipartFile;
 
-
-
-
+import javax.servlet.http.HttpServletRequest;
 
 
 /*产品增减*/
 @CrossOrigin
-@Controller
+@RestController
 @RequestMapping("product")
-@ResponseBody
 public class ProductController extends BaseController {
 
 	@Autowired
@@ -44,12 +38,86 @@ public class ProductController extends BaseController {
 	 * @return
 	 */
 	@RequiresPermissions("product:all")
-	@RequestMapping(value="selectListProduct",method=RequestMethod.POST)
+	@PostMapping(value="selectListProduct")
 	public Object selectListProduct(QueryProduct queryProduct, String page, String limit){
 		    PageHelper.startPage(Integer.valueOf(page), Integer.valueOf(limit));
 			List<ProductRecord> selectProduct = productService.selectListProduct(queryProduct);
+/*		ProductRecord productRecord=new ProductRecord();
+		productRecord.setProductName("测试啊");
+		List<ProductRecord> recordList= new ArrayList<ProductRecord>();
+		recordList.add(productRecord);
+		selectProduct.get(0).setRecordList(recordList);*/
 			return  buildPageSuccess((Page<ProductRecord>) selectProduct);
 	}
+
+	/**
+	 * 产品增减保存
+	 * @return
+	 */
+	@RequiresPermissions("product:all")
+	@RequestMapping(value="insertProduct",method=RequestMethod.POST)
+	public Object insertProduct(String json,@RequestParam("pictureFile") MultipartFile[] pictureFile,
+								HttpServletRequest request){
+		ProductRecord productRecord = JSON.parseObject(json, ProductRecord.class);
+		productRecord.setId(IdGen.uuid());
+        productRecord.setCreateDate(new Date());
+		productRecord.setUserid(UserUtils.getPrincipal().getId());
+		productService.insertProduct(productRecord);
+		return  buildInsterSuccess();
+	}
+	//添加子件
+	@RequiresPermissions("product:all")
+	@RequestMapping(value="insertAssembly",method=RequestMethod.POST)
+	public Object insertAssembly(String json){
+		ProductRecord productRecord = JSON.parseObject(json, ProductRecord.class);
+		int i=productService.insertAssembly(productRecord);
+		if(i>0){
+			return buildInsterSuccess();
+		}
+		return buildJsonWrapErr();
+	}
+
+	//产品类型查询
+	@RequiresPermissions("product:all")
+	@PostMapping(value = "selectCategory")
+	public Object selectCategory() {
+		List<ProductCategory> category = productService.selectCategory();
+		return buildJsonSuccess(category);
+	}
+	//产品类型新增
+	@RequiresPermissions("product:all")
+	@PostMapping("insertProductCategory")
+	public Object insertProductCategory(ProductCategory productCategory){
+		productCategory.setId(IdGen.uuid());
+		String userid = UserUtils.getPrincipal().getId();
+		productCategory.setUserid(userid);
+		int result=productService.insertProductCategory(productCategory);
+		if(result>0){
+			return buildInsterSuccess();
+		}
+		return buildJsonWrapErr();
+	}
+	//产品类型修改
+	@RequiresPermissions("product:all")
+	@PostMapping("updateProductCategory")
+	public Object updateProductCategory(ProductCategory productCategory){
+		int result=productService.updateProductCategory(productCategory);
+		if(result>0){
+			return buildInsterSuccess();
+		}
+		return buildJsonWrapErr();
+	}
+
+
+
+
+
+
+
+
+
+
+
 
 
 	/**	
@@ -67,33 +135,6 @@ public class ProductController extends BaseController {
 	
 	
 	
-	/**
-	 * 产品增减保存
-	 * @return
-	 */
-	@RequiresPermissions("product:all")
-	@RequestMapping(value="insertProduct",method=RequestMethod.POST)
-	public String insertProduct(String json,@RequestParam("pictureFile")MultipartFile[] pictureFile,
-			HttpServletRequest request){
-		ProductRecord productRecord = JSON.parseObject(json, ProductRecord.class);
-		String uuid= IdGen.uuid();
-		productRecord.setId(uuid);
-		productRecord.setUserid(UserUtils.getPrincipal().getId());
-		productRecord.setCreateDate(new Date());
-		productService.insertProduct(productRecord);
-		return  "{\"mes\":\"ok\"}";
-	}
-	//添加子件
-	@RequiresPermissions("product:all")
-	@RequestMapping(value="insertAssembly",method=RequestMethod.POST)
-	public Object insertAssembly(String json){
-		ProductRecord productRecord = JSON.parseObject(json, ProductRecord.class);
-		int i=productService.insertAssembly(productRecord);
-		if(i>0){
-			return buildInsterSuccess();
-		}
-		return buildJsonWrapErr();
-	}
 
 	/**
 	 * 产品增减修改
@@ -109,22 +150,20 @@ public class ProductController extends BaseController {
 		return  "{\"mes\":\"ok\"}";
 	}*/
 	
-	//产品增减类型保存（主类）
-	@RequiresPermissions("product:all")
+	//产品增减类型保存
+/*	@RequiresPermissions("product:all")
 	@RequestMapping(value = "createcategory",method=RequestMethod.POST)
 	public String createcategory(String  category) {
 		productService.savecategory(category);	
 		return "{\"mes\":\"ok\"}";
-	}
-	//产品增减类型查询（主类）
-	@RequiresPermissions("product:all")
-	@RequestMapping(value = "selectCategory",method=RequestMethod.POST)
-	public List<ProductCategory> selectCategory() {
-		List<ProductCategory> category = productService.selectCategory();	
-		return category;
-	}
+	}*/
+
+
+
+
+
 	
-	//产品增减类型修改（主类）
+/*	//产品增减类型修改（主类）
 	@RequiresPermissions("product:all")
 	@RequestMapping(value = "updateCategory",method=RequestMethod.POST)	
 	public String updateCategory(String id,String category){		
@@ -144,8 +183,8 @@ public class ProductController extends BaseController {
 	public List<ProductCategoryB> selectCategoryB(String productCategoryId){
 		return productService.selectCategoryB(productCategoryId);	
 	}
-	
-	//产品增减类型保存（子类）
+	*/
+	/*//产品增减类型保存（子类）
 	@RequiresPermissions("product:all")
 	@RequestMapping(value = "insertCategoryB",method=RequestMethod.POST)	
 	public String insertCategoryB(String productCategoryId,String  category,String img) {
@@ -179,7 +218,7 @@ public class ProductController extends BaseController {
 		record.setRecordList(list);
 		return record;
 	}
-	
+	*/
 	
 	//产品分析查询
 /*	@RequestMapping(value = "/selectProductAnalysis",method=RequestMethod.POST)
