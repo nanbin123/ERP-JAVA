@@ -3,12 +3,15 @@ package com.efss.mapper;
 import java.util.List;
 
 import com.efss.entity.product.*;
+import org.apache.ibatis.annotations.Param;
 
 
 public interface ProductMapper {
 
 
 	List<ProductRecord> selectListProduct(QueryProduct queryProduct);
+
+	List<ProductRecord> selectProductAssembly(@Param("productid")String productid);
 
 	int insertProduct(ProductRecord productRecord);
 

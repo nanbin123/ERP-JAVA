@@ -8,6 +8,7 @@ import com.efss.mapper.ProductMapper;
 import com.efss.utils.IdGen;
 import com.efss.utils.UserUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,11 +22,21 @@ public class ProductService extends BaseService{
 
 
 	public List<ProductRecord> selectListProduct(QueryProduct queryProduct) {
-		return productMapper.selectListProduct(queryProduct);
+        List<ProductRecord> listProduct=productMapper.selectListProduct(queryProduct);
+        if(queryProduct.getState() !=null&& "1".equals(StringUtils.join(queryProduct.getState()))){
+            for (int i = 0; i < listProduct.size(); i++) {
+                List<ProductRecord> recordList=productMapper.selectProductAssembly(listProduct.get(i).getId());
+                listProduct.get(i).setRecordList(recordList);
+            }
+        }
+		return listProduct;
 	}
 	public int insertProduct(ProductRecord productRecord) {
 		return productMapper.insertProduct(productRecord);
 	}
+
+
+
 
 	public int insertAssembly(ProductRecord productRecord) {
 		List<ProductAssembly> productAssembly= productRecord.getProductAssembly();

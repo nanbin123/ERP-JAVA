@@ -4,8 +4,10 @@ public class QueryProduct {
 
 	 private String id;
 	
-	 private String state;//货物状态   '0  整件' ,'1套件' '2 子件'
-	 
+	 //private String state;//货物状态   '0  整件' ,'1套件' '2 子件'
+
+	private String[] state;
+
 	 private String lowerShelf;//下架
 	    
 	 private String noLowerShelf;//在架
@@ -26,11 +28,11 @@ public class QueryProduct {
 		this.id = id;
 	}
 
-	public String getState() {
+	public String[] getState() {
 		return state;
 	}
 
-	public void setState(String state) {
+	public void setState(String[] state) {
 		this.state = state;
 	}
 

@@ -13,7 +13,6 @@
 			IF(A.conventional ='0','常规产品','定制产品')conventional,
 			pc.category productType,
 			ps.name purchaseSupplierId,
-			A.index_img_url indexImgUrl,
 			(CASE A.state WHEN '0' THEN '整件' WHEN '1' THEN '套件' WHEN '2' THEN '子件' ELSE '' END) state
 		FROM	product  A
 		LEFT JOIN product_category pc ON A.product_category_id=pc.id
@@ -22,8 +21,11 @@
 			<if test="productNameOrType !=null and productNameOrType!=''">
 				(A.product_name LIKE CONCAT('%',#{productNameOrType},'%') OR A.type  LIKE CONCAT('%',#{productNameOrType},'%'))
 			</if>
-			<if test="state !=null  and state!=''">
-				AND A.state =#{state}
+			<if test="state != null and state.length>0">
+				AND A.state IN
+				<foreach collection="state" item="item" index="index" open="(" close=")" separator=",">
+					#{item}
+				</foreach>
 			</if>
 			<trim prefix="AND (" suffix=")" prefixOverrides="OR" >
 				<if test="lowerShelf != null and lowerShelf !=''">
@@ -42,6 +44,24 @@
 		</where>
 		ORDER BY A.create_date DESC
 	</select>
+
+    <select id="selectProductAssembly" resultType="com.efss.entity.product.ProductRecord" >
+        SELECT
+            P.id,P.product_name productName,P.type,
+            P.size,	P.color,P.texture,
+            P.retail_price retailPrice,P.production,
+            P.purchase_price purchasePrice,
+            IF(P.sold_out = '0','正常在架','已下架') soldOut,
+            IF(P.conventional ='0','常规产品','定制产品')conventional,
+            pc.category productType,
+            ps.name purchaseSupplierId,
+            (CASE P.state WHEN '0' THEN '整件' WHEN '1' THEN '套件' WHEN '2' THEN '子件' ELSE '' END) state
+        FROM
+            (SELECT product_assembly_id	FROM product_assembly WHERE productid =#{productid}) AS PA
+        LEFT JOIN product  AS P ON PA.product_assembly_id=P.id
+        LEFT JOIN product_category pc ON P.product_category_id=pc.id
+        LEFT JOIN purchase_supplier ps ON P.purchase_supplier_id=ps.id
+    </select>
 
 
 	<insert id="insertProduct">
